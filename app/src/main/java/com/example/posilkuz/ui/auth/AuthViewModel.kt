@@ -10,6 +10,7 @@ import com.google.firebase.auth.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 class AuthViewModel : ViewModel() {
     private val auth = Firebase.auth
@@ -74,6 +75,7 @@ class AuthViewModel : ViewModel() {
                                     isVerifying = false
                                     authState = AuthResult.Error("Błąd zapisu danych użytkownika")
                                 }
+                            createEmptyUserPantry(userId)
                         }
                     } else {
                         isVerifying = false // Wyłączamy przy błędzie rejestracji
@@ -86,5 +88,19 @@ class AuthViewModel : ViewModel() {
     fun logout() {
         auth.signOut()
         authState = AuthResult.Idle
+    }
+
+    // Wersja BEZ suspend (starszy styl)
+    private fun createEmptyUserPantry(userId: String) {
+        val userData = hashMapOf(
+            "pantry" to emptyList<String>(),
+            "email" to auth.currentUser?.email
+        )
+
+        db.collection("users").document(userId)
+            .set(userData)
+            .addOnSuccessListener {
+                // Sukces zapisania w bazie
+            }
     }
 }

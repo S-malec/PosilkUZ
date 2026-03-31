@@ -8,30 +8,34 @@ import com.example.posilkuz.ui.home.HomeScreen
 import com.google.firebase.auth.FirebaseAuth
 
 @Composable
-fun AuthScreen(modifier: Modifier = Modifier, viewModel: AuthViewModel = viewModel()) {
+fun AuthScreen(
+    modifier: Modifier = Modifier,
+    viewModel: AuthViewModel = viewModel(),
+    onAuthSuccess: () -> Unit // Dodajemy ten parametr!
+) {
     var isLoginScreen by remember { mutableStateOf(true) }
 
-    val currentUser by remember(viewModel.authState) {
-        derivedStateOf { FirebaseAuth.getInstance().currentUser }
+    // Reagujemy na zmianę stanu w ViewModelu
+    // Jeśli stan zmieni się na Success, wywołujemy funkcję nawigacji do Home
+    LaunchedEffect(viewModel.authState) {
+        if (viewModel.authState is AuthResult.Success) {
+            onAuthSuccess()
+        }
     }
 
-    // Główny kontener na CAŁY ekran
+    // Główny kontener - usuwamy stąd HomeScreen!
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = modifier.fillMaxSize()) {
-            if (currentUser != null) {
-                HomeScreen(onLogout = { viewModel.logout() })
+            if (isLoginScreen) {
+                LoginScreen(
+                    viewModel = viewModel,
+                    onNavigateToRegister = { isLoginScreen = false }
+                )
             } else {
-                if (isLoginScreen) {
-                    LoginScreen(
-                        viewModel = viewModel,
-                        onNavigateToRegister = { isLoginScreen = false }
-                    )
-                } else {
-                    RegisterScreen(
-                        viewModel = viewModel,
-                        onNavigateToLogin = { isLoginScreen = true }
-                    )
-                }
+                RegisterScreen(
+                    viewModel = viewModel,
+                    onNavigateToLogin = { isLoginScreen = true }
+                )
             }
         }
     }
