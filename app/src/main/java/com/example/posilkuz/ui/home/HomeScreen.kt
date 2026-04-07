@@ -16,7 +16,8 @@ import com.google.firebase.firestore.FirebaseFirestore
 fun HomeScreen(
     onLogout: () -> Unit,
     onNavigateToPantry: () -> Unit, // Dodajemy akcję nawigacji do spiżarni
-    onNavigateToProfile: () -> Unit // Możesz dodać kolejne w przyszłości
+    onNavigateToProfile: () -> Unit, // Możesz dodać kolejne w przyszłości
+    onShowMaps: () -> Unit
 ) {
     val auth = FirebaseAuth.getInstance()
     val db = FirebaseFirestore.getInstance()
@@ -39,7 +40,7 @@ fun HomeScreen(
                 val items = listOf(
                     Triple("Główna", Icons.Default.Home, {}),
                     Triple("Spiżarnia", Icons.Default.ShoppingCart, onNavigateToPantry), // Tu przypisujemy akcję
-                    Triple("Sklepy", Icons.Default.Star, {}),
+                    Triple("Sklepy", Icons.Default.ShoppingBasket, onShowMaps),
                     Triple("Profil", Icons.Default.Person, onNavigateToProfile)
                 )
 
@@ -73,7 +74,7 @@ fun HomeScreen(
                     style = MaterialTheme.typography.headlineMedium
                 )
                 IconButton(onClick = onLogout) {
-                    Icon(Icons.Default.ExitToApp, contentDescription = "Wyloguj")
+                    Icon(Icons.Default.Logout, contentDescription = "Wyloguj")
                 }
             }
 

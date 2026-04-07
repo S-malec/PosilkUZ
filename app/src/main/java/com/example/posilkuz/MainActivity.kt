@@ -1,5 +1,7 @@
 package com.example.posilkuz
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -8,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -34,6 +37,8 @@ class MainActivity : ComponentActivity() {
                 // Sprawdzamy czy użytkownik jest zalogowany na starcie
                 val startDestination = if (auth.currentUser != null) "home" else "auth"
 
+                val context = LocalContext.current
+
                 NavHost(navController = navController, startDestination = startDestination) {
                     // Ekran logowania
                     composable("auth") {
@@ -58,6 +63,22 @@ class MainActivity : ComponentActivity() {
                             },
                             onNavigateToProfile = {
                                 // Pusta lambda rozwiązuje błąd "No value passed for parameter"
+                            } ,
+                            onShowMaps = {
+                                val query = "sklepy spożywcze"
+                                val uri = Uri.parse("geo:0,0?q=${Uri.encode(query)}")
+                                val mapIntent = Intent(Intent.ACTION_VIEW, uri)
+
+                                // Wymuszenie otwarcia w Google Maps
+                                mapIntent.setPackage("com.google.android.apps.maps")
+
+                                try {
+                                    context.startActivity(mapIntent)
+                                } catch (e: Exception) {
+                                    // Jeśli nie ma aplikacji Mapy, otwórz w przeglądarce
+                                    val webIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.google.com/maps/search/?api=1&query=${Uri.encode(query)}"))
+                                    context.startActivity(webIntent)
+                                }
                             }
                         )
                     }
