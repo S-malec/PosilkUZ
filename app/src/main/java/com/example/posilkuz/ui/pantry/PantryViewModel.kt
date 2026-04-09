@@ -1,5 +1,6 @@
 package com.example.posilkuz.ui.pantry
 
+import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.async
@@ -7,7 +8,10 @@ import androidx.lifecycle.viewModelScope
 import com.example.posilkuz.data.model.Product
 import com.example.posilkuz.data.repository.ProductRepository
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 
 class PantryViewModel(
     private val repository: ProductRepository = ProductRepository()
@@ -23,6 +27,13 @@ class PantryViewModel(
 
     private val _isLoading = MutableStateFlow(true)
     val isLoading = _isLoading.asStateFlow()
+    val groupedProducts = allProducts
+        .map { products -> products.groupBy { it.category } }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyMap()
+        )
 
     init {
         loadData()
