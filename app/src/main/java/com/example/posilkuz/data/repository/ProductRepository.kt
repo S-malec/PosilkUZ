@@ -4,6 +4,9 @@ import com.example.posilkuz.data.model.Product
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 
 class ProductRepository(
@@ -34,6 +37,41 @@ class ProductRepository(
             document.get("pantry") as? List<String> ?: emptyList()
         } catch (e: Exception) {
             emptyList()
+        }
+    }
+
+    // W ProductRepository.kt
+    fun getUserPantryIdsFlow(): Flow<Set<String>> = callbackFlow {
+        val userId = auth.currentUser?.uid
+        if (userId == null) {
+            trySend(emptySet())
+            return@callbackFlow
+        }
+
+        // Słuchamy dokumentu użytkownika (bo tam jest tablica "pantry")
+        val listener = firestore.collection("users")
+            .document(userId)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    println("Błąd Firestore: ${error.message}")
+                    return@addSnapshotListener
+                }
+
+                if (snapshot != null && snapshot.exists()) {
+                    // Pobieramy pole "pantry" jako listę Stringów
+                    @Suppress("UNCHECKED_CAST")
+                    val pantryList = snapshot.get("pantry") as? List<String> ?: emptyList()
+
+                    println("Flow wykrył zmianę w bazie! Nowe dane: $pantryList")
+                    trySend(pantryList.toSet())
+                } else {
+                    trySend(emptySet())
+                }
+            }
+
+        awaitClose {
+            println("Zamykanie listenera Firestore")
+            listener.remove()
         }
     }
 

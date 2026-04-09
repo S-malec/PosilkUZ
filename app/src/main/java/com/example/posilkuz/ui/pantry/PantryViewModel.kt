@@ -1,32 +1,31 @@
 package com.example.posilkuz.ui.pantry
 
-import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.ViewModel
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.async
 import androidx.lifecycle.viewModelScope
 import com.example.posilkuz.data.model.Product
 import com.example.posilkuz.data.repository.ProductRepository
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 
 class PantryViewModel(
     private val repository: ProductRepository = ProductRepository()
 ) : ViewModel() {
 
-    // Lista wszystkich produktów dostępnych w bazie
+    // 1. Lista produktów - może zostać jako StateFlow (pobierana raz lub rzadko)
     private val _allProducts = MutableStateFlow<List<Product>>(emptyList())
     val allProducts = _allProducts.asStateFlow()
 
-    // Zbiór ID produktów, które użytkownik ma w spiżarni
-    private val _userPantryIds = MutableStateFlow<Set<String>>(emptySet())
-    val userPantryIds = _userPantryIds.asStateFlow()
+    // 2. KLUCZOWA ZMIANA: userPantryIds teraz słucha Flow z repozytorium
+    val userPantryIds: StateFlow<Set<String>> = repository.getUserPantryIdsFlow()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptySet()
+        )
 
     private val _isLoading = MutableStateFlow(true)
     val isLoading = _isLoading.asStateFlow()
+
     val groupedProducts = allProducts
         .map { products -> products.groupBy { it.category } }
         .stateIn(
@@ -42,26 +41,21 @@ class PantryViewModel(
     fun loadData() {
         viewModelScope.launch {
             _isLoading.value = true
-            // Pobieramy dane równolegle
-            val productsDeferred = async { repository.getAllProducts() }
-            val pantryDeferred = async { repository.getUserPantryIds() }
-
-            _allProducts.value = productsDeferred.await()
-            _userPantryIds.value = pantryDeferred.await().toSet()
+            // Pobieramy listę wszystkich dostępnych produktów (np. z JSONa/Firestore)
+            _allProducts.value = repository.getAllProducts()
+            // Nie musimy już ręcznie pobierać userPantryIds, bo Flow powyżej sam to robi
             _isLoading.value = false
         }
     }
 
     fun toggleProduct(productId: String) {
         viewModelScope.launch {
-            val currentPantry = _userPantryIds.value
+            // Logika UI: Nie musimy już ręcznie robić `_userPantryIds.value = ...`
+            // Reaktywne Flow samo wykryje zmianę w bazie i odświeży UI!
+            val currentPantry = userPantryIds.value
             if (currentPantry.contains(productId)) {
-                // Usuwamy lokalnie (szybka reakcja UI) i w bazie
-                _userPantryIds.value = currentPantry - productId
                 repository.removeProductFromPantry(productId)
             } else {
-                // Dodajemy lokalnie i w bazie
-                _userPantryIds.value = currentPantry + productId
                 repository.addProductToPantry(productId)
             }
         }
