@@ -1,0 +1,52 @@
+[
+  {
+    "title": "Naleśniki",
+    "ingredientIds": ["maka_pszenna", "mleko_32", "jajka"],
+    "instructions": "Wymieszaj składniki na gładkie ciasto i smaż cienkie naleśniki na rozgrzanej patelni."
+  },
+  {
+    "title": "Jajecznica",
+    "ingredientIds": ["jajka", "maslo"],
+    "instructions": "Rozpuść masło na patelni, wbij jajka i smaż mieszając aż się zetną."
+  },
+  {
+    "title": "Kurczak z ryżem",
+    "ingredientIds": ["piers_z_kurczaka", "ryz", "sol"],
+    "instructions": "Ugotuj ryż. Kurczaka pokrój, dopraw solą i usmaż. Podawaj razem."
+  },
+  {
+    "title": "Makaron z serem",
+    "ingredientIds": ["makaron", "ser_zolty"],
+    "instructions": "Ugotuj makaron, odcedź i wymieszaj z startym serem aż się rozpuści."
+  },
+  {
+    "title": "Sałatka warzywna",
+    "ingredientIds": ["pomidor", "ogorek", "salata", "cebula"],
+    "instructions": "Pokrój wszystkie warzywa i wymieszaj w misce."
+  },
+  {
+    "title": "Kanapki z serem",
+    "ingredientIds": ["chleb", "ser_zolty", "maslo"],
+    "instructions": "Posmaruj chleb masłem, połóż ser i przykryj drugą kromką."
+  },
+  {
+    "title": "Ziemniaki gotowane",
+    "ingredientIds": ["ziemniaki", "sol"],
+    "instructions": "Obierz ziemniaki, ugotuj w osolonej wodzie do miękkości."
+  },
+  {
+    "title": "Kurczak z warzywami",
+    "ingredientIds": ["piers_z_kurczaka", "papryka", "cebula", "pomidor"],
+    "instructions": "Pokrój składniki i smaż razem na patelni aż kurczak będzie gotowy."
+  },
+  {
+    "title": "Owocowa sałatka",
+    "ingredientIds": ["jablka", "banany", "pomarancze"],
+    "instructions": "Pokrój owoce na kawałki i wymieszaj w misce."
+  },
+  {
+    "title": "Tosty z jajkiem",
+    "ingredientIds": ["chleb", "jajka", "maslo"],
+    "instructions": "Podsmaż chleb na maśle, dodaj jajko i smaż aż będzie gotowe."
+  }
+]

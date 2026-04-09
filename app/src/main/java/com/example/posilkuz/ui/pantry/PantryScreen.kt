@@ -58,6 +58,7 @@ fun PantryScreen(
                 val items = listOf(
                     Triple("Główna", Icons.Default.Home, onNavigateToHome),
                     Triple("Spiżarnia", Icons.Default.ShoppingCart, {}),
+                    Triple("Przepisy", Icons.Default.Restaurant, onNavigateToRecipes),
                     Triple("Sklepy", Icons.Default.Star, {}),
                     Triple("Profil", Icons.Default.Person, onNavigateToProfile)
                 )

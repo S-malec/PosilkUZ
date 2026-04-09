@@ -8,12 +8,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.posilkuz.data.importRecipesFromJson
 import com.example.posilkuz.ui.auth.AuthScreen
 import com.example.posilkuz.ui.home.HomeScreen
 import com.example.posilkuz.ui.pantry.PantryScreen
+import com.example.posilkuz.ui.recipe.RecipesScreen
 import com.example.posilkuz.ui.theme.PosilkUZTheme
 import com.google.firebase.FirebaseApp
 import com.google.firebase.appcheck.FirebaseAppCheck
@@ -44,7 +47,6 @@ class MainActivity : ComponentActivity() {
                         })
                     }
 
-                    // Ekran główny (z dolnym menu)
                     composable("home") {
                         HomeScreen(
                             onLogout = {
@@ -53,37 +55,38 @@ class MainActivity : ComponentActivity() {
                                     popUpTo("home") { inclusive = true }
                                 }
                             },
-                            onNavigateToPantry = {
-                                navController.navigate("pantry")
-                            },
-                            onNavigateToProfile = {
-                                // Pusta lambda rozwiązuje błąd "No value passed for parameter"
-                            }
+                            onNavigateToPantry = { navigateToTab(navController, "pantry") },
+                            onNavigateToRecipes = { navigateToTab(navController, "recipes") },
+                            onNavigateToProfile = { /* navigateToTab(navController, "profile") */ }
                         )
                     }
 
-                    // W MainActivity.kt
                     composable("pantry") {
                         PantryScreen(
-                            onNavigateToHome = {
-                                // Uproszczona wersja bez parametrów dodatkowych na start
-                                navController.navigate("home") {
-                                    popUpTo("home") { inclusive = true }
-                                }
-                            },
-                            onNavigateToRecipes = {
-                                navController.navigate("recipes")
-                            },
-                            onNavigateToProfile = { }
+                            onNavigateToHome = { navigateToTab(navController, "home") },
+                            onNavigateToRecipes = { navigateToTab(navController, "recipes") },
+                            onNavigateToProfile = { /* navigateToTab(navController, "profile") */ }
                         )
                     }
 
-                    // Ekran wyników (przepisów)
                     composable("recipes") {
-                        // RecipeListScreen() - tu dodasz widok przepisów
+                        RecipesScreen(
+                            onNavigateToHome = { navigateToTab(navController, "home") },
+                            onNavigateToPantry = { navigateToTab(navController, "pantry") },
+                            onNavigateToProfile = { /* navigateToTab(navController, "profile") */ }
+                        )
                     }
                 }
             }
+        }
+    }
+
+    fun navigateToTab(navController: NavHostController, route: String) {
+        navController.navigate(route) {
+            // Cofa do startu przed wejściem na nową zakładkę, żeby nie budować stosu
+            popUpTo(navController.graph.startDestinationId) { saveState = true }
+            launchSingleTop = true
+            restoreState = true
         }
     }
 }

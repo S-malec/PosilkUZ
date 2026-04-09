@@ -15,8 +15,9 @@ import com.google.firebase.firestore.FirebaseFirestore
 @Composable
 fun HomeScreen(
     onLogout: () -> Unit,
-    onNavigateToPantry: () -> Unit, // Dodajemy akcję nawigacji do spiżarni
-    onNavigateToProfile: () -> Unit // Możesz dodać kolejne w przyszłości
+    onNavigateToPantry: () -> Unit,
+    onNavigateToRecipes: () -> Unit,
+    onNavigateToProfile: () -> Unit
 ) {
     val auth = FirebaseAuth.getInstance()
     val db = FirebaseFirestore.getInstance()
@@ -39,6 +40,7 @@ fun HomeScreen(
                 val items = listOf(
                     Triple("Główna", Icons.Default.Home, {}),
                     Triple("Spiżarnia", Icons.Default.ShoppingCart, onNavigateToPantry), // Tu przypisujemy akcję
+                    Triple("Przepisy", Icons.Default.Restaurant, onNavigateToRecipes),
                     Triple("Sklepy", Icons.Default.Star, {}),
                     Triple("Profil", Icons.Default.Person, onNavigateToProfile)
                 )
@@ -99,6 +101,12 @@ fun HomeScreen(
                         modifier = Modifier.padding(top = 16.dp)
                     ) {
                         Text("Zarządzaj składnikami")
+                    }
+
+                    Button(
+                        onClick = onNavigateToRecipes
+                    ) {
+                        Text("Zarządzaj przepisami")
                     }
                 }
             }
