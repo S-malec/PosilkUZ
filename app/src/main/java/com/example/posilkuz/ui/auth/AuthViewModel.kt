@@ -10,6 +10,7 @@ import com.google.firebase.auth.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 class AuthViewModel : ViewModel() {
     private val auth = Firebase.auth
@@ -19,72 +20,75 @@ class AuthViewModel : ViewModel() {
     var authState by mutableStateOf<AuthResult>(AuthResult.Idle)
         private set
 
-    // Stan dla animacji "Cloudflare / App Check"
+    // Stan dla animacji weryfikacji
     var isVerifying by mutableStateOf(false)
         private set
 
+    /**
+     * Logowanie użytkownika
+     */
     fun login(email: String, pass: String) {
-        if (email.isEmpty() || pass.isEmpty()) return
-
-        viewModelScope.launch {
-            // 1. Startujemy animację weryfikacji
-            isVerifying = true
-            authState = AuthResult.Loading
-
-            // 2. Krótkie opóźnienie dla efektu "sprawdzania bezpiecznego połączenia"
-            delay(1500)
-
-            auth.signInWithEmailAndPassword(email, pass)
-                .addOnCompleteListener { task ->
-                    // 3. Wyłączamy animację po zakończeniu operacji
-                    isVerifying = false
-                    authState = if (task.isSuccessful) AuthResult.Success
-                    else AuthResult.Error(task.exception?.message ?: "Błąd logowania")
-                }
-        }
-    }
-
-    fun register(email: String, pass: String, nickname: String) {
-        if (nickname.isEmpty()) {
-            authState = AuthResult.Error("Nick nie może być pusty")
+        if (email.isEmpty() || pass.isEmpty()) {
+            authState = AuthResult.Error("Uzupełnij wszystkie pola")
             return
         }
 
         viewModelScope.launch {
-            // 1. Startujemy animację weryfikacji
-            isVerifying = true
-            authState = AuthResult.Loading
+            try {
+                isVerifying = true
+                authState = AuthResult.Loading
 
-            // 2. Symulacja weryfikacji App Check
-            delay(2000)
+                delay(1500) // Efekt wizualny weryfikacji
 
-            auth.createUserWithEmailAndPassword(email, pass)
-                .addOnCompleteListener { task ->
-                    if (task.isSuccessful) {
-                        val userId = auth.currentUser?.uid
-                        val userMap = hashMapOf("nickname" to nickname, "email" to email)
+                auth.signInWithEmailAndPassword(email, pass).await()
 
-                        if (userId != null) {
-                            db.collection("users").document(userId).set(userMap)
-                                .addOnSuccessListener {
-                                    isVerifying = false // Wyłączamy przy sukcesie zapisu
-                                    authState = AuthResult.Success
-                                }
-                                .addOnFailureListener {
-                                    isVerifying = false
-                                    authState = AuthResult.Error("Błąd zapisu danych użytkownika")
-                                }
-                        }
-                    } else {
-                        isVerifying = false // Wyłączamy przy błędzie rejestracji
-                        authState = AuthResult.Error(task.exception?.message ?: "Błąd rejestracji")
-                    }
-                }
+                authState = AuthResult.Success
+            } catch (e: Exception) {
+                authState = AuthResult.Error(e.localizedMessage ?: "Błąd logowania")
+            } finally {
+                isVerifying = false
+            }
         }
     }
 
-    fun logout() {
-        auth.signOut()
-        authState = AuthResult.Idle
+    /**
+     * Rejestracja nowego użytkownika z zapisem danych w Firestore
+     */
+    fun register(email: String, pass: String, nickname: String) {
+        if (nickname.isEmpty() || email.isEmpty() || pass.isEmpty()) {
+            authState = AuthResult.Error("Uzupełnij wszystkie pola")
+            return
+        }
+
+        viewModelScope.launch {
+            try {
+                isVerifying = true
+                authState = AuthResult.Loading
+
+                delay(2000) // Symulacja App Check
+
+                // 1. Tworzenie konta w Firebase Auth
+                val authResult = auth.createUserWithEmailAndPassword(email, pass).await()
+                val userId = authResult.user?.uid ?: throw Exception("Nie udało się pobrać ID użytkownika")
+
+                // 2. Przygotowanie danych (Wszystko w jednej mapie, by uniknąć nadpisywania)
+                val userMap = hashMapOf(
+                    "nickname" to nickname,
+                    "email" to email,
+                    "pantry" to emptyList<String>(),
+                    "createdAt" to com.google.firebase.Timestamp.now()
+                )
+
+                // 3. Zapis do Firestore (Używamy await(), więc kod czeka na zakończenie zapisu)
+                db.collection("users").document(userId).set(userMap).await()
+
+                authState = AuthResult.Success
+            } catch (e: Exception) {
+                // Jeśli np. Auth się uda, ale Firestore padnie, warto tu obsłużyć wycofanie zmian
+                authState = AuthResult.Error(e.localizedMessage ?: "Błąd rejestracji")
+            } finally {
+                isVerifying = false
+            }
+        }
     }
 }

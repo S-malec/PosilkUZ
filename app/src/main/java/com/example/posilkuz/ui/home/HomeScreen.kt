@@ -2,11 +2,7 @@ package com.example.posilkuz.ui.home
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ExitToApp
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -17,7 +13,12 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
-fun HomeScreen(onLogout: () -> Unit) {
+fun HomeScreen(
+    onLogout: () -> Unit,
+    onNavigateToPantry: () -> Unit,
+    onNavigateToRecipes: () -> Unit,
+    onNavigateToProfile: () -> Unit
+) {
     val auth = FirebaseAuth.getInstance()
     val db = FirebaseFirestore.getInstance()
     var nickname by remember { mutableStateOf("...") }
@@ -35,19 +36,23 @@ fun HomeScreen(onLogout: () -> Unit) {
     Scaffold(
         bottomBar = {
             NavigationBar {
+                // Definiujemy elementy menu wraz z ich trasami/akcjami
                 val items = listOf(
-                    "Główna" to Icons.Default.Home,
-                    "Dieta" to Icons.Default.ShoppingCart,
-                    "Sklepy" to Icons.Default.Star,
-                    "Profil" to Icons.Default.Person
+                    Triple("Główna", Icons.Default.Home, {}),
+                    Triple("Spiżarnia", Icons.Default.ShoppingCart, onNavigateToPantry), // Tu przypisujemy akcję
+                    Triple("Przepisy", Icons.Default.Restaurant, onNavigateToRecipes),
+                    Triple("Sklepy", Icons.Default.Star, {}),
+                    Triple("Profil", Icons.Default.Person, onNavigateToProfile)
                 )
 
-                items.forEach { (label, icon) ->
+                items.forEach { (label, icon, action) ->
+                    val isSelected = label == "Główna" // Logika zaznaczenia (na razie uproszczona)
+
                     NavigationBarItem(
                         icon = { Icon(icon, contentDescription = label) },
                         label = { Text(label) },
-                        selected = label == "Główna", // Na razie domyślnie zaznaczona Główna
-                        onClick = { /* Tu w przyszłości będzie zmiana ekranów */ }
+                        selected = isSelected,
+                        onClick = action // Wywołanie przekazanej akcji
                     )
                 }
             }
@@ -59,7 +64,7 @@ fun HomeScreen(onLogout: () -> Unit) {
                 .padding(innerPadding)
                 .padding(16.dp)
         ) {
-            // Nagłówek z nickiem i wylogowaniem
+            // Nagłówek
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -89,6 +94,20 @@ fun HomeScreen(onLogout: () -> Unit) {
                         style = MaterialTheme.typography.bodySmall,
                         color = Color.Gray
                     )
+
+                    // Opcjonalnie: Przycisk skrótu na środku ekranu
+                    Button(
+                        onClick = onNavigateToPantry,
+                        modifier = Modifier.padding(top = 16.dp)
+                    ) {
+                        Text("Zarządzaj składnikami")
+                    }
+
+                    Button(
+                        onClick = onNavigateToRecipes
+                    ) {
+                        Text("Zarządzaj przepisami")
+                    }
                 }
             }
         }

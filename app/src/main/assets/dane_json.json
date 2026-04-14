@@ -1,0 +1,50 @@
+[
+  { "id": "maka_pszenna", "name": "Mąka pszenna", "category": "Produkty sypkie", "unit": "kg" },
+  { "id": "maka_zytnia", "name": "Mąka żytnia", "category": "Produkty sypkie", "unit": "kg" },
+  { "id": "cukier", "name": "Cukier", "category": "Produkty sypkie", "unit": "kg" },
+  { "id": "cukier_puder", "name": "Cukier puder", "category": "Produkty sypkie", "unit": "kg" },
+  { "id": "sol", "name": "Sól", "category": "Produkty sypkie", "unit": "kg" },
+  { "id": "ryz", "name": "Ryż", "category": "Produkty sypkie", "unit": "kg" },
+  { "id": "makaron", "name": "Makaron", "category": "Produkty sypkie", "unit": "kg" },
+  { "id": "kasza_gryczana", "name": "Kasza gryczana", "category": "Produkty sypkie", "unit": "kg" },
+
+  { "id": "mleko_32", "name": "Mleko 3.2%", "category": "Nabiał", "unit": "l" },
+  { "id": "mleko_2", "name": "Mleko 2%", "category": "Nabiał", "unit": "l" },
+  { "id": "jajka", "name": "Jajka", "category": "Nabiał", "unit": "szt" },
+  { "id": "maslo", "name": "Masło", "category": "Nabiał", "unit": "g" },
+  { "id": "ser_zolty", "name": "Ser żółty", "category": "Nabiał", "unit": "g" },
+  { "id": "ser_bialy", "name": "Ser biały", "category": "Nabiał", "unit": "g" },
+  { "id": "jogurt_naturalny", "name": "Jogurt naturalny", "category": "Nabiał", "unit": "g" },
+  { "id": "smietana_18", "name": "Śmietana 18%", "category": "Nabiał", "unit": "g" },
+
+  { "id": "piers_z_kurczaka", "name": "Pierś z kurczaka", "category": "Mięso", "unit": "g" },
+  { "id": "udko_z_kurczaka", "name": "Udko z kurczaka", "category": "Mięso", "unit": "g" },
+  { "id": "mieso_mielone", "name": "Mięso mielone", "category": "Mięso", "unit": "g" },
+  { "id": "kielbasa", "name": "Kiełbasa", "category": "Mięso", "unit": "g" },
+  { "id": "boczek", "name": "Boczek", "category": "Mięso", "unit": "g" },
+
+  { "id": "chleb", "name": "Chleb", "category": "Pieczywo", "unit": "szt" },
+  { "id": "bulki", "name": "Bułki", "category": "Pieczywo", "unit": "szt" },
+  { "id": "bagietka", "name": "Bagietka", "category": "Pieczywo", "unit": "szt" },
+
+  { "id": "ziemniaki", "name": "Ziemniaki", "category": "Warzywa", "unit": "kg" },
+  { "id": "marchew", "name": "Marchew", "category": "Warzywa", "unit": "kg" },
+  { "id": "cebula", "name": "Cebula", "category": "Warzywa", "unit": "kg" },
+  { "id": "czosnek", "name": "Czosnek", "category": "Warzywa", "unit": "szt" },
+  { "id": "papryka", "name": "Papryka", "category": "Warzywa", "unit": "szt" },
+  { "id": "ogorek", "name": "Ogórek", "category": "Warzywa", "unit": "szt" },
+  { "id": "pomidor", "name": "Pomidor", "category": "Warzywa", "unit": "szt" },
+  { "id": "salata", "name": "Sałata", "category": "Warzywa", "unit": "szt" },
+
+  { "id": "jablka", "name": "Jabłka", "category": "Owoce", "unit": "kg" },
+  { "id": "banany", "name": "Banany", "category": "Owoce", "unit": "kg" },
+  { "id": "pomarancze", "name": "Pomarańcze", "category": "Owoce", "unit": "kg" },
+  { "id": "truskawki", "name": "Truskawki", "category": "Owoce", "unit": "kg" },
+  { "id": "cytryna", "name": "Cytryna", "category": "Owoce", "unit": "szt" },
+
+  { "id": "woda_mineralna", "name": "Woda mineralna", "category": "Napoje", "unit": "l" },
+  { "id": "sok_pomaranczowy", "name": "Sok pomarańczowy", "category": "Napoje", "unit": "l" },
+  { "id": "cola", "name": "Cola", "category": "Napoje", "unit": "l" },
+  { "id": "herbata", "name": "Herbata", "category": "Napoje", "unit": "opak" },
+  { "id": "kawa", "name": "Kawa", "category": "Napoje", "unit": "g" }
+]
