@@ -1,4 +1,4 @@
-# Posi-kUZ
+# PosiłkUZ
 Projekt Android
 
 🥗 PosiłkUZ
