@@ -50,13 +50,23 @@ class PantryViewModel(
 
     fun toggleProduct(productId: String) {
         viewModelScope.launch {
-            // Logika UI: Nie musimy już ręcznie robić `_userPantryIds.value = ...`
-            // Reaktywne Flow samo wykryje zmianę w bazie i odświeży UI!
             val currentPantry = userPantryIds.value
             if (currentPantry.contains(productId)) {
                 repository.removeProductFromPantry(productId)
             } else {
                 repository.addProductToPantry(productId)
+            }
+        }
+    }
+
+    fun addProductByBarcode(barcode: String) {
+        viewModelScope.launch {
+            val product = _allProducts.value.find { it.barcode == barcode }
+
+            if (product != null) {
+                repository.addProductToPantry(product.id)
+            } else {
+                // POZNIEJ DODAJ TU DO LISTY PRODUKTOW DO ZATWIERDZENIA I WYSWIETL Z TYM ZWIAZANY KOMUNIKAT
             }
         }
     }

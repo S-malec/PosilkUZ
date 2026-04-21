@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.Restaurant // IMPORT DLA IKONY
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Star
@@ -39,6 +40,14 @@ fun PantryScreen(
     val groupedProducts by viewModel.groupedProducts.collectAsState(initial = emptyMap())
     val pantryIds by viewModel.userPantryIds.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    var showBarcodeDialog by remember { mutableStateOf(false) }
+
+    if (showBarcodeDialog) {
+        BarcodeScannerDialog(
+            onDismiss = { showBarcodeDialog = false },
+            onBarcodeScanned = { barcode -> viewModel.addProductByBarcode(barcode) }
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -48,9 +57,9 @@ fun PantryScreen(
         },
         floatingActionButton = {
             ExtendedFloatingActionButton(
-                onClick = onNavigateToRecipes,
-                icon = { Icon(Icons.Default.Restaurant, contentDescription = null) },
-                text = { Text("Co mogę zjeść?") }
+                onClick = { showBarcodeDialog = true }, // Otwiera dialog
+                icon = { Icon(Icons.Default.QrCodeScanner, contentDescription = null) },
+                text = { Text("Skanuj") }
             )
         },
         bottomBar = {

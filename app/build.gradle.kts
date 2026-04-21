@@ -82,4 +82,5 @@ dependencies {
     implementation("androidx.compose.material3:material3:1.2.1")
     implementation("androidx.navigation:navigation-compose:2.8.0")
     implementation("com.google.code.gson:gson:2.10.1")
+    implementation("com.google.android.gms:play-services-code-scanner:16.1.0")
 }
