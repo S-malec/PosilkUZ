@@ -3,6 +3,7 @@ package com.example.posilkuz.ui.pantry
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.posilkuz.data.model.Product
+import com.example.posilkuz.data.normalizePolish
 import com.example.posilkuz.data.repository.ProductRepository
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -11,11 +12,9 @@ class PantryViewModel(
     private val repository: ProductRepository = ProductRepository()
 ) : ViewModel() {
 
-    // 1. Lista produktów - może zostać jako StateFlow (pobierana raz lub rzadko)
     private val _allProducts = MutableStateFlow<List<Product>>(emptyList())
     val allProducts = _allProducts.asStateFlow()
 
-    // 2. KLUCZOWA ZMIANA: userPantryIds teraz słucha Flow z repozytorium
     val userPantryIds: StateFlow<Set<String>> = repository.getUserPantryIdsFlow()
         .stateIn(
             scope = viewModelScope,
@@ -26,13 +25,36 @@ class PantryViewModel(
     private val _isLoading = MutableStateFlow(true)
     val isLoading = _isLoading.asStateFlow()
 
-    val groupedProducts = allProducts
-        .map { products -> products.groupBy { it.category } }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyMap()
-        )
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery = _searchQuery.asStateFlow()
+
+    enum class SortOrder { ASCENDING, DESCENDING }
+
+    // W PantryViewModel.kt
+    private val _sortOrder = MutableStateFlow(SortOrder.ASCENDING)
+    val sortOrder = _sortOrder.asStateFlow()
+    val groupedProducts = combine(allProducts, _searchQuery, _sortOrder) { products, query, order ->
+        val normalizedQuery = query.normalizePolish()
+
+        val filtered = products.filter {
+            it.name.normalizePolish().contains(normalizedQuery)
+        }
+
+        val sorted = when (order) {
+            SortOrder.ASCENDING -> filtered.sortedBy { it.name.normalizePolish() }
+            SortOrder.DESCENDING -> filtered.sortedByDescending { it.name.normalizePolish() }
+        }
+
+        sorted.groupBy { it.category }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyMap()
+    )
+
+    fun onSearchQueryChange(newQuery: String) {
+        _searchQuery.value = newQuery
+    }
 
     init {
         loadData()
@@ -68,6 +90,14 @@ class PantryViewModel(
             } else {
                 // POZNIEJ DODAJ TU DO LISTY PRODUKTOW DO ZATWIERDZENIA I WYSWIETL Z TYM ZWIAZANY KOMUNIKAT
             }
+        }
+    }
+
+    fun toggleSortOrder() {
+        _sortOrder.value = if (_sortOrder.value == SortOrder.ASCENDING) {
+            SortOrder.DESCENDING
+        } else {
+            SortOrder.ASCENDING
         }
     }
 }

@@ -10,13 +10,16 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items // KLUCZOWY IMPORT
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.Restaurant // IMPORT DLA IKONY
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.filled.SortByAlpha
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -40,6 +43,8 @@ fun PantryScreen(
     val groupedProducts by viewModel.groupedProducts.collectAsState(initial = emptyMap())
     val pantryIds by viewModel.userPantryIds.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    val searchQuery by viewModel.searchQuery.collectAsState()
+    val sortOrder by viewModel.sortOrder.collectAsState()
     var showBarcodeDialog by remember { mutableStateOf(false) }
 
     if (showBarcodeDialog) {
@@ -51,9 +56,54 @@ fun PantryScreen(
 
     Scaffold(
         topBar = {
-            CenterAlignedTopAppBar(
-                title = { Text("Twoja Spiżarnia") }
-            )
+            Column {
+                CenterAlignedTopAppBar(title = { Text("Twoja Spiżarnia") })
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Wyszukiwarka
+                    OutlinedTextField(
+                        value = searchQuery,
+                        onValueChange = { viewModel.onSearchQueryChange(it) },
+                        modifier = Modifier.weight(1f), // Zajmuje dostępną przestrzeń
+                        placeholder = { Text("Szukaj produktu...") },
+                        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                        trailingIcon = {
+                            if (searchQuery.isNotEmpty()) {
+                                IconButton(onClick = { viewModel.onSearchQueryChange("") }) {
+                                    Icon(Icons.Default.Close, contentDescription = "Wyczyść")
+                                }
+                            }
+                        },
+                        shape = RoundedCornerShape(12.dp),
+                        singleLine = true
+                    )
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    // Przycisk sortowania
+                    FilledTonalIconButton(
+                        onClick = { viewModel.toggleSortOrder() },
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.size(56.dp) // Wysokość taka sama jak TextField
+                    ) {
+                        Icon(
+                            imageVector = if (sortOrder == PantryViewModel.SortOrder.ASCENDING)
+                                Icons.Default.SortByAlpha
+                            else
+                                Icons.Default.SortByAlpha,
+                            contentDescription = "Sortuj",
+                            modifier = Modifier.graphicsLayer {
+                                rotationX = if (sortOrder == PantryViewModel.SortOrder.DESCENDING) 180f else 0f
+                            }
+                        )
+                    }
+                }
+            }
         },
         floatingActionButton = {
             ExtendedFloatingActionButton(
@@ -90,11 +140,19 @@ fun PantryScreen(
         } else {
             // LazyColumn teraz uwzględnia padding z Scaffolda
             LazyColumn(
+
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
                     .padding(horizontal = 16.dp) // Dodatkowy padding dla estetyki kafelków
             ) {
+                if (groupedProducts.isEmpty() && searchQuery.isNotEmpty()) {
+                    item {
+                        Box(Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) {
+                            Text("Brak wyników dla: \"$searchQuery\"", color = Color.Gray)
+                        }
+                    }
+                }
                 // Iterujemy po mapie grup produktowych
                 groupedProducts.forEach { (category, productsInCategory) ->
                     item {
