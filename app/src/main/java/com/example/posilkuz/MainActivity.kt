@@ -18,6 +18,16 @@ import com.example.posilkuz.ui.home.HomeScreen
 import com.example.posilkuz.ui.pantry.PantryScreen
 import com.example.posilkuz.ui.recipe.RecipesScreen
 import com.example.posilkuz.ui.theme.PosilkUZTheme
+
+import com.example.posilkuz.ui.profile.ProfileScreen
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import com.example.posilkuz.ui.theme.ThemeMode
+import androidx.compose.material3.Surface
+import androidx.compose.material3.MaterialTheme
+
 import com.google.firebase.FirebaseApp
 import com.google.firebase.appcheck.FirebaseAppCheck
 import com.google.firebase.appcheck.playintegrity.PlayIntegrityAppCheckProviderFactory
@@ -30,56 +40,71 @@ class MainActivity : ComponentActivity() {
 
         enableEdgeToEdge()
         setContent {
-            PosilkUZTheme {
-                val navController = rememberNavController()
-                val auth = FirebaseAuth.getInstance()
+            var currentTheme by remember { mutableStateOf(ThemeMode.SYSTEM) }
+            val navController = rememberNavController()
+            val auth = FirebaseAuth.getInstance()
 
-                // Sprawdzamy czy użytkownik jest zalogowany na starcie
-                val startDestination = if (auth.currentUser != null) "home" else "auth"
+            PosilkUZTheme(themeMode = currentTheme) {
+                // TO JEST KLUCZ DO NAPRAWY TŁA: Surface wypełnia ekran kolorem z motywu!
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    val startDestination = if (auth.currentUser != null) "home" else "auth"
 
-                NavHost(navController = navController, startDestination = startDestination) {
-                    // Ekran logowania
-                    composable("auth") {
-                        AuthScreen(onAuthSuccess = {
-                            navController.navigate("home") {
-                                popUpTo("auth") { inclusive = true } // Czyścimy historię, żeby nie wracać do logowania
-                            }
-                        })
-                    }
-
-                    composable("home") {
-                        HomeScreen(
-                            onLogout = {
-                                auth.signOut()
-                                navController.navigate("auth") {
-                                    popUpTo("home") { inclusive = true }
+                    NavHost(navController = navController, startDestination = startDestination) {
+                        composable("auth") {
+                            AuthScreen(onAuthSuccess = {
+                                navController.navigate("home") {
+                                    popUpTo("auth") { inclusive = true }
                                 }
-                            },
-                            onNavigateToPantry = { navigateToTab(navController, "pantry") },
-                            onNavigateToRecipes = { navigateToTab(navController, "recipes") },
-                            onNavigateToProfile = { /* navigateToTab(navController, "profile") */ }
-                        )
-                    }
+                            })
+                        }
 
-                    composable("pantry") {
-                        PantryScreen(
-                            onNavigateToHome = { navigateToTab(navController, "home") },
-                            onNavigateToRecipes = { navigateToTab(navController, "recipes") },
-                            onNavigateToProfile = { /* navigateToTab(navController, "profile") */ }
-                        )
-                    }
+                        composable("home") {
+                            HomeScreen(
+                                onLogout = {
+                                    auth.signOut()
+                                    navController.navigate("auth") {
+                                        popUpTo("home") { inclusive = true }
+                                    }
+                                },
+                                onNavigateToPantry = { navigateToTab(navController, "pantry") },
+                                onNavigateToRecipes = { navigateToTab(navController, "recipes") },
+                                onNavigateToProfile = { navigateToTab(navController, "profile") }
+                            )
+                        }
 
-                    composable("recipes") {
-                        RecipesScreen(
-                            onNavigateToHome = { navigateToTab(navController, "home") },
-                            onNavigateToPantry = { navigateToTab(navController, "pantry") },
-                            onNavigateToProfile = { /* navigateToTab(navController, "profile") */ }
-                        )
+                        composable("pantry") {
+                            PantryScreen(
+                                onNavigateToHome = { navigateToTab(navController, "home") },
+                                onNavigateToRecipes = { navigateToTab(navController, "recipes") },
+                                onNavigateToProfile = { navigateToTab(navController, "profile") }
+                            )
+                        }
+
+                        composable("recipes") {
+                            RecipesScreen(
+                                onNavigateToHome = { navigateToTab(navController, "home") },
+                                onNavigateToPantry = { navigateToTab(navController, "pantry") },
+                                onNavigateToProfile = { navigateToTab(navController, "profile") }
+                            )
+                        }
+
+                        composable("profile") {
+                            ProfileScreen(
+                                currentTheme = currentTheme,
+                                onThemeChange = { newTheme -> currentTheme = newTheme },
+                                onNavigateToHome = { navigateToTab(navController, "home") },
+                                onNavigateToPantry = { navigateToTab(navController, "pantry") },
+                                onNavigateToRecipes = { navigateToTab(navController, "recipes") }
+                            )
+                        }
                     }
                 }
             }
         }
-    }
+    } // <-- TUTEJ DODAŁEM BRAKUJĄCĄ KLAMRĘ ZAMYKAJĄCĄ onCreate!
 
     fun navigateToTab(navController: NavHostController, route: String) {
         navController.navigate(route) {
