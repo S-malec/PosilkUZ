@@ -3,45 +3,15 @@ package com.example.posilkuz.ui.recipe
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.RadioButtonUnchecked
-import androidx.compose.material.icons.filled.Restaurant
-import androidx.compose.material.icons.filled.ShoppingBasket
-import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -55,52 +25,40 @@ import com.example.posilkuz.data.model.Recipe
 @Composable
 fun RecipesScreen(
     viewModel: RecipesViewModel = viewModel(),
-    onNavigateToHome: () -> Unit,
-    onNavigateToPantry: () -> Unit,
-    onNavigateToProfile: () -> Unit,
-    onShowMaps: () -> Unit
+    innerPadding: PaddingValues = PaddingValues()  // Padding z zewnętrznego Scaffolda
 ) {
     val recipes by viewModel.recipes.collectAsState()
     val pantryIds by viewModel.userPantryIds.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
 
+    // Własny Scaffold tylko dla TopBar — bez BottomBar
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
                 title = { Text("Nasze przepisy") }
             )
-        },
-        bottomBar = {
-            NavigationBar {
-                val items = listOf(
-                    Triple("Główna", Icons.Default.Home, onNavigateToHome),
-                    Triple("Spiżarnia", Icons.Default.ShoppingCart, onNavigateToPantry),
-                    Triple("Przepisy", Icons.Default.Restaurant, {}),
-                    Triple("Sklepy", Icons.Default.ShoppingBasket, onShowMaps),
-                    Triple("Profil", Icons.Default.Person, onNavigateToProfile)
-                )
-
-                items.forEach { (label, icon, action) ->
-                    NavigationBarItem(
-                        icon = { Icon(icon, contentDescription = label) },
-                        label = { Text(label) },
-                        selected = label == "Przepisy",
-                        onClick = { action() }
-                    )
-                }
-            }
         }
-    ) { padding ->
+    ) { scaffoldPadding ->
         if (isLoading) {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .padding(scaffoldPadding)
+                    .padding(bottom = innerPadding.calculateBottomPadding()),
+                contentAlignment = Alignment.Center
+            ) {
                 CircularProgressIndicator()
             }
         } else {
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(padding)
-                    .padding(horizontal = 16.dp)
+                    .padding(scaffoldPadding)
+                    .padding(
+                        bottom = innerPadding.calculateBottomPadding(),
+                        start = 16.dp,
+                        end = 16.dp
+                    )
             ) {
                 items(recipes) { recipe ->
                     RecipeCard(recipe = recipe, userPantryIds = pantryIds)
@@ -147,7 +105,6 @@ fun RecipeCard(recipe: Recipe, userPantryIds: Set<String>) {
                         color = MaterialTheme.colorScheme.primary
                     )
 
-                    // Lista składników z oznaczeniem, czy je mamy
                     recipe.ingredientIds.forEach { ingredientId ->
                         val hasIngredient = userPantryIds.contains(ingredientId)
                         Row(
@@ -162,7 +119,7 @@ fun RecipeCard(recipe: Recipe, userPantryIds: Set<String>) {
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = ingredientId.replace("_", " "), // Proste formatowanie nazwy
+                                text = ingredientId.replace("_", " "),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = if (hasIngredient) MaterialTheme.colorScheme.onSurface else Color.Gray
                             )

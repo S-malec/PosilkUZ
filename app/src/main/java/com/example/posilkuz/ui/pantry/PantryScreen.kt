@@ -11,15 +11,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.QrCodeScanner
-import androidx.compose.material.icons.filled.Restaurant // IMPORT DLA IKONY
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.ShoppingBasket
-import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.SortByAlpha
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -35,10 +29,7 @@ import com.example.posilkuz.data.model.Product
 @Composable
 fun PantryScreen(
     viewModel: PantryViewModel = viewModel(),
-    onNavigateToHome: () -> Unit,
-    onNavigateToRecipes: () -> Unit,
-    onNavigateToProfile: () -> Unit,
-    onShowMaps: () -> Unit
+    innerPadding: PaddingValues = PaddingValues() // Padding z zewnętrznego Scaffolda (np. z BottomBar)
 ) {
     val groupedProducts by viewModel.groupedProducts.collectAsState(initial = emptyMap())
     val pantryIds by viewModel.userPantryIds.collectAsState()
@@ -54,119 +45,108 @@ fun PantryScreen(
         )
     }
 
-    Scaffold(
-        topBar = {
-            Column {
-                CenterAlignedTopAppBar(title = { Text("Twoja Spiżarnia") })
+    // Używamy Box, aby zaaplikować padding zewnętrzny (miejsce na dolne menu)
+    // Dzięki temu FAB wewnątrz Scaffolda "podskoczy" nad pasek nawigacji.
+    Box(modifier = Modifier.padding(innerPadding)) {
+        Scaffold(
+            topBar = {
+                Surface(tonalElevation = 3.dp) {
+                    Column {
+                        CenterAlignedTopAppBar(title = { Text("Twoja Spiżarnia") })
 
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    // Wyszukiwarka
-                    OutlinedTextField(
-                        value = searchQuery,
-                        onValueChange = { viewModel.onSearchQueryChange(it) },
-                        modifier = Modifier.weight(1f), // Zajmuje dostępną przestrzeń
-                        placeholder = { Text("Szukaj produktu...") },
-                        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-                        trailingIcon = {
-                            if (searchQuery.isNotEmpty()) {
-                                IconButton(onClick = { viewModel.onSearchQueryChange("") }) {
-                                    Icon(Icons.Default.Close, contentDescription = "Wyczyść")
-                                }
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            OutlinedTextField(
+                                value = searchQuery,
+                                onValueChange = { viewModel.onSearchQueryChange(it) },
+                                modifier = Modifier.weight(1f),
+                                placeholder = { Text("Szukaj produktu...") },
+                                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                                trailingIcon = {
+                                    if (searchQuery.isNotEmpty()) {
+                                        IconButton(onClick = { viewModel.onSearchQueryChange("") }) {
+                                            Icon(Icons.Default.Close, contentDescription = "Wyczyść")
+                                        }
+                                    }
+                                },
+                                shape = RoundedCornerShape(12.dp),
+                                singleLine = true
+                            )
+
+                            Spacer(modifier = Modifier.width(8.dp))
+
+                            FilledTonalIconButton(
+                                onClick = { viewModel.toggleSortOrder() },
+                                shape = RoundedCornerShape(12.dp),
+                                modifier = Modifier.size(56.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.SortByAlpha,
+                                    contentDescription = "Sortuj",
+                                    modifier = Modifier.graphicsLayer {
+                                        rotationX = if (sortOrder == PantryViewModel.SortOrder.DESCENDING) 180f else 0f
+                                    }
+                                )
                             }
-                        },
-                        shape = RoundedCornerShape(12.dp),
-                        singleLine = true
-                    )
-
-                    Spacer(modifier = Modifier.width(8.dp))
-
-                    // Przycisk sortowania
-                    FilledTonalIconButton(
-                        onClick = { viewModel.toggleSortOrder() },
-                        shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier.size(56.dp) // Wysokość taka sama jak TextField
-                    ) {
-                        Icon(
-                            imageVector = if (sortOrder == PantryViewModel.SortOrder.ASCENDING)
-                                Icons.Default.SortByAlpha
-                            else
-                                Icons.Default.SortByAlpha,
-                            contentDescription = "Sortuj",
-                            modifier = Modifier.graphicsLayer {
-                                rotationX = if (sortOrder == PantryViewModel.SortOrder.DESCENDING) 180f else 0f
-                            }
-                        )
-                    }
-                }
-            }
-        },
-        floatingActionButton = {
-            ExtendedFloatingActionButton(
-                onClick = { showBarcodeDialog = true }, // Otwiera dialog
-                icon = { Icon(Icons.Default.QrCodeScanner, contentDescription = null) },
-                text = { Text("Skanuj") }
-            )
-        },
-        bottomBar = {
-            NavigationBar {
-                val items = listOf(
-                    Triple("Główna", Icons.Default.Home, onNavigateToHome),
-                    Triple("Spiżarnia", Icons.Default.ShoppingCart, {}),
-                    Triple("Przepisy", Icons.Default.Restaurant, onNavigateToRecipes),
-                    Triple("Sklepy", Icons.Default.ShoppingBasket, onShowMaps),
-                    Triple("Profil", Icons.Default.Person, onNavigateToProfile)
-                )
-
-                items.forEach { (label, icon, action) ->
-                    NavigationBarItem(
-                        icon = { Icon(icon, contentDescription = label) },
-                        label = { Text(label) },
-                        selected = label == "Spiżarnia",
-                        onClick = { action() }
-                    )
-                }
-            }
-        }
-    ) { padding ->
-        if (isLoading) {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
-        } else {
-            // LazyColumn teraz uwzględnia padding z Scaffolda
-            LazyColumn(
-
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-                    .padding(horizontal = 16.dp) // Dodatkowy padding dla estetyki kafelków
-            ) {
-                if (groupedProducts.isEmpty() && searchQuery.isNotEmpty()) {
-                    item {
-                        Box(Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) {
-                            Text("Brak wyników dla: \"$searchQuery\"", color = Color.Gray)
                         }
                     }
                 }
-                // Iterujemy po mapie grup produktowych
-                groupedProducts.forEach { (category, productsInCategory) ->
-                    item {
-                        CategorySection(
-                            categoryName = category,
-                            products = productsInCategory,
-                            pantryIds = pantryIds,
-                            onProductToggle = { id -> viewModel.toggleProduct(id) }
-                        )
+            },
+            floatingActionButton = {
+                ExtendedFloatingActionButton(
+                    onClick = { showBarcodeDialog = true },
+                    icon = { Icon(Icons.Default.QrCodeScanner, contentDescription = null) },
+                    text = { Text("Skanuj") },
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            },
+            floatingActionButtonPosition = FabPosition.End
+        ) { scaffoldPadding ->
+            if (isLoading) {
+                Box(
+                    Modifier
+                        .fillMaxSize()
+                        .padding(scaffoldPadding),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(scaffoldPadding),
+                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 100.dp)
+                ) {
+                    if (groupedProducts.isEmpty() && searchQuery.isNotEmpty()) {
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .fillParentMaxSize()
+                                    .padding(bottom = 100.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text("Brak wyników dla: \"$searchQuery\"", color = Color.Gray)
+                            }
+                        }
+                    }
+
+                    groupedProducts.forEach { (category, productsInCategory) ->
+                        item {
+                            CategorySection(
+                                categoryName = category,
+                                products = productsInCategory,
+                                pantryIds = pantryIds,
+                                onProductToggle = { id -> viewModel.toggleProduct(id) }
+                            )
+                        }
                     }
                 }
-
-                // Dodajemy pusty element na dole, żeby FAB nie zasłaniał ostatniego produktu
-                item { Spacer(modifier = Modifier.height(80.dp)) }
             }
         }
     }
@@ -180,18 +160,15 @@ fun CategorySection(
     onProductToggle: (String) -> Unit
 ) {
     var isExpanded by remember { mutableStateOf(false) }
-
-    // Animacja obrotu ikonki strzałki
-    val rotationState by animateFloatAsState(targetValue = if (isExpanded) 180f else 0f)
+    val rotationState by animateFloatAsState(targetValue = if (isExpanded) 180f else 0f, label = "rotation")
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 6.dp)
-            .clip(CardDefaults.shape) // Dzięki temu ripple będzie miał kształt karty, nie okręgu
+            .clip(CardDefaults.shape)
             .clickable { isExpanded = !isExpanded },
         colors = CardDefaults.cardColors(
-            // Delikatna zmiana koloru gdy rozwinięte
             containerColor = if (isExpanded)
                 MaterialTheme.colorScheme.surfaceColorAtElevation(4.dp)
             else MaterialTheme.colorScheme.surfaceVariant
@@ -210,17 +187,15 @@ fun CategorySection(
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Icon(
-                    imageVector = Icons.Default.ExpandMore, // Używamy jednej ikony i ją obracamy
+                    imageVector = Icons.Default.ExpandMore,
                     contentDescription = null,
                     modifier = Modifier.graphicsLayer { rotationZ = rotationState }
                 )
             }
 
-            // Płynne rozwijanie listy
             AnimatedVisibility(visible = isExpanded) {
                 Column(
-                    modifier = Modifier
-                        .padding(bottom = 12.dp, start = 8.dp, end = 8.dp)
+                    modifier = Modifier.padding(bottom = 12.dp, start = 8.dp, end = 8.dp)
                 ) {
                     products.forEach { product ->
                         ProductRow(
@@ -241,7 +216,6 @@ fun ProductRow(
     isSelected: Boolean,
     onCheckedChange: (Boolean) -> Unit
 ) {
-    // Animacja koloru tła dla zaznaczonego produktu
     val backgroundColor by animateColorAsState(
         targetValue = if (isSelected)
             MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
@@ -253,7 +227,7 @@ fun ProductRow(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 2.dp)
-            .clip(RoundedCornerShape(8.dp)) // Zaokrąglamy rogi podświetlenia i tła
+            .clip(RoundedCornerShape(8.dp))
             .background(backgroundColor)
             .clickable { onCheckedChange(!isSelected) }
             .padding(horizontal = 12.dp, vertical = 8.dp),
@@ -280,7 +254,3 @@ fun ProductRow(
         )
     }
 }
-
-
-
-
