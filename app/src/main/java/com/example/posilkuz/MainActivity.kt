@@ -1,27 +1,21 @@
 package com.example.posilkuz
 
 import android.os.Bundle
+import androidx.compose.ui.platform.LocalContext
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.posilkuz.data.importRecipesFromJson
 import com.example.posilkuz.ui.auth.AuthScreen
 import com.example.posilkuz.ui.home.HomeScreen
 import com.example.posilkuz.ui.pantry.PantryScreen
 import com.example.posilkuz.ui.recipe.RecipesScreen
 import com.example.posilkuz.ui.theme.PosilkUZTheme
-import com.google.firebase.FirebaseApp
-import com.google.firebase.appcheck.FirebaseAppCheck
-import com.google.firebase.appcheck.playintegrity.PlayIntegrityAppCheckProviderFactory
 import com.google.firebase.auth.FirebaseAuth
+import com.example.posilkuz.ui.navigation.openGroceryMaps
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,6 +30,9 @@ class MainActivity : ComponentActivity() {
 
                 // Sprawdzamy czy użytkownik jest zalogowany na starcie
                 val startDestination = if (auth.currentUser != null) "home" else "auth"
+
+                val context = LocalContext.current
+                val onShowMaps: () -> Unit = { context.openGroceryMaps() }
 
                 NavHost(navController = navController, startDestination = startDestination) {
                     // Ekran logowania
@@ -57,7 +54,8 @@ class MainActivity : ComponentActivity() {
                             },
                             onNavigateToPantry = { navigateToTab(navController, "pantry") },
                             onNavigateToRecipes = { navigateToTab(navController, "recipes") },
-                            onNavigateToProfile = { /* navigateToTab(navController, "profile") */ }
+                            onNavigateToProfile = { /* navigateToTab(navController, "profile") */ },
+                            onShowMaps = onShowMaps
                         )
                     }
 
@@ -65,7 +63,8 @@ class MainActivity : ComponentActivity() {
                         PantryScreen(
                             onNavigateToHome = { navigateToTab(navController, "home") },
                             onNavigateToRecipes = { navigateToTab(navController, "recipes") },
-                            onNavigateToProfile = { /* navigateToTab(navController, "profile") */ }
+                            onNavigateToProfile = { /* navigateToTab(navController, "profile") */ },
+                            onShowMaps = onShowMaps
                         )
                     }
 
@@ -73,7 +72,8 @@ class MainActivity : ComponentActivity() {
                         RecipesScreen(
                             onNavigateToHome = { navigateToTab(navController, "home") },
                             onNavigateToPantry = { navigateToTab(navController, "pantry") },
-                            onNavigateToProfile = { /* navigateToTab(navController, "profile") */ }
+                            onNavigateToProfile = { /* navigateToTab(navController, "profile") */ },
+                            onShowMaps = onShowMaps
                         )
                     }
                 }

@@ -17,7 +17,8 @@ fun HomeScreen(
     onLogout: () -> Unit,
     onNavigateToPantry: () -> Unit,
     onNavigateToRecipes: () -> Unit,
-    onNavigateToProfile: () -> Unit
+    onNavigateToProfile: () -> Unit,
+    onShowMaps: () -> Unit
 ) {
     val auth = FirebaseAuth.getInstance()
     val db = FirebaseFirestore.getInstance()
@@ -41,7 +42,7 @@ fun HomeScreen(
                     Triple("Główna", Icons.Default.Home, {}),
                     Triple("Spiżarnia", Icons.Default.ShoppingCart, onNavigateToPantry), // Tu przypisujemy akcję
                     Triple("Przepisy", Icons.Default.Restaurant, onNavigateToRecipes),
-                    Triple("Sklepy", Icons.Default.Star, {}),
+                    Triple("Sklepy", Icons.Default.ShoppingBasket, onShowMaps),
                     Triple("Profil", Icons.Default.Person, onNavigateToProfile)
                 )
 

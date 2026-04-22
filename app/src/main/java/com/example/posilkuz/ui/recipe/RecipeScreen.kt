@@ -15,13 +15,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.RadioButtonUnchecked
 import androidx.compose.material.icons.filled.Restaurant
+import androidx.compose.material.icons.filled.ShoppingBasket
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Card
@@ -31,7 +31,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -58,7 +57,8 @@ fun RecipesScreen(
     viewModel: RecipesViewModel = viewModel(),
     onNavigateToHome: () -> Unit,
     onNavigateToPantry: () -> Unit,
-    onNavigateToProfile: () -> Unit
+    onNavigateToProfile: () -> Unit,
+    onShowMaps: () -> Unit
 ) {
     val recipes by viewModel.recipes.collectAsState()
     val pantryIds by viewModel.userPantryIds.collectAsState()
@@ -76,7 +76,7 @@ fun RecipesScreen(
                     Triple("Główna", Icons.Default.Home, onNavigateToHome),
                     Triple("Spiżarnia", Icons.Default.ShoppingCart, onNavigateToPantry),
                     Triple("Przepisy", Icons.Default.Restaurant, {}),
-                    Triple("Sklepy", Icons.Default.Star, {}),
+                    Triple("Sklepy", Icons.Default.ShoppingBasket, onShowMaps),
                     Triple("Profil", Icons.Default.Person, onNavigateToProfile)
                 )
 

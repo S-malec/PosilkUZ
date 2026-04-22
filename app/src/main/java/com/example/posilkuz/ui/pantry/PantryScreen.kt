@@ -7,17 +7,16 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items // KLUCZOWY IMPORT
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.Restaurant // IMPORT DLA IKONY
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.ShoppingBasket
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.SortByAlpha
 import androidx.compose.material.icons.filled.Star
@@ -38,7 +37,8 @@ fun PantryScreen(
     viewModel: PantryViewModel = viewModel(),
     onNavigateToHome: () -> Unit,
     onNavigateToRecipes: () -> Unit,
-    onNavigateToProfile: () -> Unit
+    onNavigateToProfile: () -> Unit,
+    onShowMaps: () -> Unit
 ) {
     val groupedProducts by viewModel.groupedProducts.collectAsState(initial = emptyMap())
     val pantryIds by viewModel.userPantryIds.collectAsState()
@@ -118,7 +118,7 @@ fun PantryScreen(
                     Triple("Główna", Icons.Default.Home, onNavigateToHome),
                     Triple("Spiżarnia", Icons.Default.ShoppingCart, {}),
                     Triple("Przepisy", Icons.Default.Restaurant, onNavigateToRecipes),
-                    Triple("Sklepy", Icons.Default.Star, {}),
+                    Triple("Sklepy", Icons.Default.ShoppingBasket, onShowMaps),
                     Triple("Profil", Icons.Default.Person, onNavigateToProfile)
                 )
 
