@@ -15,12 +15,18 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -31,9 +37,10 @@ import com.example.posilkuz.ui.auth.AuthScreen
 import com.example.posilkuz.ui.home.HomeScreen
 import com.example.posilkuz.ui.navigation.openGroceryMaps
 import com.example.posilkuz.ui.pantry.PantryScreen
-import com.example.posilkuz.ui.profile.ProfilePlaceholderScreen
+import com.example.posilkuz.ui.profile.ProfileScreen
 import com.example.posilkuz.ui.recipe.RecipesScreen
 import com.example.posilkuz.ui.theme.PosilkUZTheme
+import com.example.posilkuz.ui.theme.ThemeMode
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
@@ -42,7 +49,7 @@ data class TabItem(
     val icon: ImageVector
 )
 
-// 4 zakładki — Sklepy usunięte z paska, dostępne jako kafelek na HomeScreen
+// 4 zakładki — Sklepy dostępne jako kafelek na HomeScreen
 val mainTabs = listOf(
     TabItem("Główna", Icons.Default.Home),
     TabItem("Spiżarnia", Icons.Default.ShoppingCart),
@@ -56,32 +63,43 @@ class MainActivity : ComponentActivity() {
 
         enableEdgeToEdge()
         setContent {
-            PosilkUZTheme {
-                val navController = rememberNavController()
-                val auth = FirebaseAuth.getInstance()
-                val startDestination = if (auth.currentUser != null) "main" else "auth"
-                val context = LocalContext.current
-                val onShowMaps: () -> Unit = { context.openGroceryMaps() }
+            // Stan motywu z commitu kolegi — hoistowany tutaj, żeby działał globalnie
+            var currentTheme by remember { mutableStateOf(ThemeMode.SYSTEM) }
 
-                NavHost(navController = navController, startDestination = startDestination) {
-                    composable("auth") {
-                        AuthScreen(onAuthSuccess = {
-                            navController.navigate("main") {
-                                popUpTo("auth") { inclusive = true }
-                            }
-                        })
-                    }
+            val navController = rememberNavController()
+            val auth = FirebaseAuth.getInstance()
+            val startDestination = if (auth.currentUser != null) "main" else "auth"
+            val context = LocalContext.current
+            val onShowMaps: () -> Unit = { context.openGroceryMaps() }
 
-                    composable("main") {
-                        MainPagerScreen(
-                            onLogout = {
-                                auth.signOut()
-                                navController.navigate("auth") {
-                                    popUpTo("main") { inclusive = true }
+            PosilkUZTheme(themeMode = currentTheme) {
+                // Surface z commitu kolegi — naprawia tło przy zmianie motywu
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    NavHost(navController = navController, startDestination = startDestination) {
+                        composable("auth") {
+                            AuthScreen(onAuthSuccess = {
+                                navController.navigate("main") {
+                                    popUpTo("auth") { inclusive = true }
                                 }
-                            },
-                            onShowMaps = onShowMaps
-                        )
+                            })
+                        }
+
+                        composable("main") {
+                            MainPagerScreen(
+                                currentTheme = currentTheme,
+                                onThemeChange = { currentTheme = it },
+                                onLogout = {
+                                    auth.signOut()
+                                    navController.navigate("auth") {
+                                        popUpTo("main") { inclusive = true }
+                                    }
+                                },
+                                onShowMaps = onShowMaps
+                            )
+                        }
                     }
                 }
             }
@@ -92,10 +110,11 @@ class MainActivity : ComponentActivity() {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MainPagerScreen(
+    currentTheme: ThemeMode,
+    onThemeChange: (ThemeMode) -> Unit,
     onLogout: () -> Unit,
     onShowMaps: () -> Unit
 ) {
-    // Pager ma dokładnie 4 strony — bez Sklepów
     val pagerState = rememberPagerState(pageCount = { mainTabs.size })
     val coroutineScope = rememberCoroutineScope()
 
@@ -143,7 +162,11 @@ fun MainPagerScreen(
                 )
                 1 -> PantryScreen(innerPadding = innerPadding)
                 2 -> RecipesScreen(innerPadding = innerPadding)
-                3 -> ProfilePlaceholderScreen(innerPadding = innerPadding)
+                3 -> ProfileScreen(
+                    currentTheme = currentTheme,
+                    onThemeChange = onThemeChange,
+                    innerPadding = innerPadding
+                )
             }
         }
     }

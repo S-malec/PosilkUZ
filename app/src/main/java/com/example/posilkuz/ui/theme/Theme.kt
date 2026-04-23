@@ -11,6 +11,10 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 
+enum class ThemeMode {
+    LIGHT, DARK, SYSTEM
+}
+
 private val DarkColorScheme = darkColorScheme(
     primary = Purple80,
     secondary = PurpleGrey80,
@@ -35,18 +39,24 @@ private val LightColorScheme = lightColorScheme(
 
 @Composable
 fun PosilkUZTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    themeMode: ThemeMode = ThemeMode.SYSTEM, // Zamieniamy darkTheme na themeMode
+    dynamicColor: Boolean = false, // UWAGA: Zmieniłem na false (wyjaśnienie niżej)
     content: @Composable () -> Unit
 ) {
+    // 1. Sprawdzamy, czy aplikacja ma być ciemna na podstawie wyboru użytkownika
+    val isDark = when (themeMode) {
+        ThemeMode.LIGHT -> false
+        ThemeMode.DARK -> true
+        ThemeMode.SYSTEM -> isSystemInDarkTheme()
+    }
+
+    // 2. Podstawiamy odpowiednie kolory
     val colorScheme = when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+            if (isDark) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
-
-        darkTheme -> DarkColorScheme
+        isDark -> DarkColorScheme
         else -> LightColorScheme
     }
 
