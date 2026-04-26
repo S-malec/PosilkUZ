@@ -9,7 +9,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.RadioButtonUnchecked
+import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -25,7 +27,8 @@ import com.example.posilkuz.data.model.Recipe
 @Composable
 fun RecipesScreen(
     viewModel: RecipesViewModel = viewModel(),
-    innerPadding: PaddingValues = PaddingValues()  // Padding z zewnętrznego Scaffolda
+    innerPadding: PaddingValues = PaddingValues(),  // Padding z zewnętrznego Scaffolda
+    onRandomClick: () -> Unit = {}
 ) {
     val recipes by viewModel.recipes.collectAsState()
     val pantryIds by viewModel.userPantryIds.collectAsState()
@@ -37,7 +40,20 @@ fun RecipesScreen(
             CenterAlignedTopAppBar(
                 title = { Text("Nasze przepisy") }
             )
-        }
+        },
+        floatingActionButton = {
+            ExtendedFloatingActionButton(
+                onClick = onRandomClick,
+                icon = { Icon(Icons.Default.Receipt, contentDescription = null) },
+                text = { Text("Losuj") },
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                modifier = Modifier.padding(
+                    bottom = innerPadding.calculateBottomPadding()
+                )
+            )
+        },
+        floatingActionButtonPosition = FabPosition.End
     ) { scaffoldPadding ->
         if (isLoading) {
             Box(
