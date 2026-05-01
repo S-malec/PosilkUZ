@@ -97,18 +97,28 @@ class PantryViewModel(
     }
 
     // Zaktualizowana funkcja skanowania
-    fun addProductByBarcode(barcode: String) {
-        viewModelScope.launch {
-            // Szukamy w tablicy barcodes (musisz zaktualizować model Product w Kotlin!)
+    suspend fun addProductByBarcode(barcode: String): AddProductResult {
+        return try {
+            // 1. Szukamy produktu w załadowanej już liście (pamiętaj o modelu z listą barcodes!)
             val product = _allProducts.value.find { it.barcodes.contains(barcode) }
 
             if (product != null) {
+                // 2. Jeśli produkt istnieje, dodajemy go do spiżarni w Firebase
                 repository.addProductToPantry(product.id)
+                AddProductResult.SUCCESS
             } else {
-                // Jeśli nie znaleziono, zapisujemy kod, co wywoła pokazanie formularza w UI
+                // 3. Jeśli nie znaleziono, ustawiamy unrecognizedBarcode, by UI pokazało NewProductRequestDialog
                 _unrecognizedBarcode.value = barcode
+                AddProductResult.NOT_FOUND
             }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            AddProductResult.ERROR
         }
+    }
+
+    enum class AddProductResult {
+        SUCCESS, NOT_FOUND, ERROR
     }
 
     fun toggleSortOrder() {

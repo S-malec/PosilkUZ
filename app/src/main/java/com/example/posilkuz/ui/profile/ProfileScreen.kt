@@ -16,10 +16,12 @@ import com.example.posilkuz.data.model.ProductRequest
 import com.example.posilkuz.ui.theme.ThemeMode
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.graphics.Color
 import com.example.posilkuz.data.model.Product
 import com.example.posilkuz.data.repository.ProductRepository
+import com.example.posilkuz.ui.components.AppSnackbar
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
 
@@ -149,12 +151,16 @@ fun AdminRequestsView(
     repository: ProductRepository = ProductRepository()
 ) {
     val requests = remember { mutableStateListOf<ProductRequest>() }
+    var allProducts by remember { mutableStateOf<List<Product>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
+
+    val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val db = FirebaseFirestore.getInstance()
 
-    // Słuchacz na żywo zgłoszeń
     LaunchedEffect(Unit) {
+        allProducts = repository.getAllProducts()
+
         val listener = db.collection("product_requests")
             .whereEqualTo("status", "pending")
             .addSnapshotListener { snapshot, error ->
@@ -167,50 +173,71 @@ fun AdminRequestsView(
                 }
                 isLoading = false
             }
-        // Zatrzymaj słuchanie, gdy wyjdziesz z ekranu
     }
 
-    Column {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(bottom = 16.dp)
-        ) {
-            IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, contentDescription = "Wstecz") }
-            Text("Zgłoszone produkty", style = MaterialTheme.typography.headlineSmall)
+    Scaffold(
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState) { data ->
+                AppSnackbar(data) // Ten sam komponent!
+            }
+        },
+        topBar = {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(16.dp).fillMaxWidth()
+            ) {
+                IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, "Wstecz") }
+                Text("Zgłoszone produkty", style = MaterialTheme.typography.headlineSmall)
+            }
         }
+    ) { paddingValues ->
+        Column(modifier = Modifier.padding(paddingValues).padding(horizontal = 16.dp)) {
 
-        if (isLoading) {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
-        } else if (requests.isEmpty()) {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Brak nowych zgłoszeń", color = Color.Gray)
-            }
-        } else {
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                items(requests) { request ->
-                    AdminRequestCard(
-                        request = request,
-                        onApprove = { requestId, finalProduct ->
-                            scope.launch {
-                                try {
-                                    // Używamy nowej metody, która przyjmuje cały obiekt Product
-                                    repository.approveProductRequest(
-                                        requestId = requestId,
-                                        product = finalProduct
-                                    )
-                                } catch (e: Exception) {
-                                    e.printStackTrace()
+            if (isLoading) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+            } else if (requests.isEmpty()) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("Brak nowych zgłoszeń", color = Color.Gray)
+                }
+            } else {
+                LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    items(requests) { request ->
+                        AdminRequestCard(
+                            request = request,
+                            existingProducts = allProducts,
+                            onApprove = { requestId, finalProduct ->
+                                scope.launch {
+                                    try {
+                                        repository.approveProductRequest(requestId, finalProduct)
+                                        // 3. Wyświetlenie powiadomienia po sukcesie
+                                        snackbarHostState.showSnackbar("Dodano nowy produkt: ${finalProduct.name}")
+                                    } catch (e: Exception) {
+                                        snackbarHostState.showSnackbar("Błąd podczas dodawania")
+                                    }
+                                }
+                            },
+                            onReject = { requestId ->
+                                scope.launch {
+                                    repository.rejectProductRequest(requestId)
+                                    snackbarHostState.showSnackbar("Odrzucono zgłoszenie")
+                                }
+                            },
+                            onAssignToExisting = { requestId, productId, barcode ->
+                                scope.launch {
+                                    try {
+                                        repository.addBarcodeToExistingProduct(productId, barcode)
+                                        repository.rejectProductRequest(requestId)
+                                        // 4. Wyświetlenie powiadomienia po przypisaniu
+                                        snackbarHostState.showSnackbar("Przypisano kod do istniejącego produktu")
+                                    } catch (e: Exception) {
+                                        snackbarHostState.showSnackbar("Błąd podczas przypisywania")
+                                    }
                                 }
                             }
-                        },
-                        onReject = { requestId ->
-                            scope.launch {
-                                repository.rejectProductRequest(requestId)
-                            }
-                        }
-                    )
+                        )
+                    }
                 }
             }
         }
@@ -221,57 +248,52 @@ fun AdminRequestsView(
 @Composable
 fun AdminRequestCard(
     request: ProductRequest,
+    existingProducts: List<Product>, // DODANO
     onApprove: (requestId: String, finalProduct: Product) -> Unit,
-    onReject: (String) -> Unit
+    onReject: (String) -> Unit,
+    onAssignToExisting: (requestId: String, productId: String, barcode: String) -> Unit // DODANO
 ) {
     var showEditDialog by remember { mutableStateOf(false) }
+    var showAssignDialog by remember { mutableStateOf(false) }
+    var searchQuery by remember { mutableStateOf("") }
 
-    // Stan formularza - inicjalizacja danymi z requestu
+    // Stan formularza edycji
     var editedBarcode by remember { mutableStateOf(request.barcode) }
     var editedName by remember { mutableStateOf(request.name) }
-    var editedId by remember { mutableStateOf("") } // Możesz tu wpisać sugerowane ID lub zostawić puste dla auto-gen
+    var editedId by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf("Inne") }
-    var selectedUnit by remember { mutableStateOf("szt.") }
+    var selectedUnit by remember { mutableStateOf("szt") }
 
     val categories = listOf("Warzywa", "Owoce", "Nabiał", "Mięso", "Napoje", "Pieczywo", "Produkty sypkie", "Inne")
     val units = listOf("szt", "kg", "g", "l", "ml", "opak")
 
+    // --- DIALOG: TWORZENIE NOWEGO PRODUKTU ---
     if (showEditDialog) {
         AlertDialog(
             onDismissRequest = { showEditDialog = false },
             title = { Text("Konfiguracja produktu") },
             text = {
-                // Używamy Scrollable Column, aby na mniejszych ekranach formularz się zmieścił
                 Column(
                     modifier = Modifier.verticalScroll(rememberScrollState()),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    // 1. BARCODE (na górze zgodnie z prośbą)
                     OutlinedTextField(
                         value = editedBarcode,
                         onValueChange = { editedBarcode = it },
                         label = { Text("Barcode") },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
+                        modifier = Modifier.fillMaxWidth()
                     )
-
-                    // 2. NAME
                     OutlinedTextField(
                         value = editedName,
                         onValueChange = { editedName = it },
                         label = { Text("Nazwa produktu") },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
+                        modifier = Modifier.fillMaxWidth()
                     )
-
-                    // 3. ID (nowe pole)
                     OutlinedTextField(
                         value = editedId,
                         onValueChange = { editedId = it },
                         label = { Text("ID Dokumentu (opcjonalnie)") },
-                        placeholder = { Text("Zostaw puste dla auto-ID") },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
+                        modifier = Modifier.fillMaxWidth()
                     )
 
                     Text("Kategoria:", style = MaterialTheme.typography.labelSmall)
@@ -302,7 +324,7 @@ fun AdminRequestCard(
             confirmButton = {
                 Button(onClick = {
                     val finalProduct = Product(
-                        id = editedId.ifBlank { "" }, // Jeśli puste, repozytorium wygeneruje ID
+                        id = editedId.ifBlank { "" },
                         name = editedName,
                         category = selectedCategory,
                         unit = selectedUnit,
@@ -318,7 +340,46 @@ fun AdminRequestCard(
         )
     }
 
-    // Widok karty na liście
+    // --- DIALOG: PRZYPISANIE DO ISTNIEJĄCEGO ---
+    if (showAssignDialog) {
+        AlertDialog(
+            onDismissRequest = { showAssignDialog = false },
+            title = { Text("Przypisz kod do produktu") },
+            text = {
+                Column(modifier = Modifier.heightIn(max = 400.dp)) {
+                    OutlinedTextField(
+                        value = searchQuery,
+                        onValueChange = { searchQuery = it },
+                        label = { Text("Szukaj produktu...") },
+                        modifier = Modifier.fillMaxWidth(),
+                        leadingIcon = { Icon(Icons.Default.Search, null) }
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    LazyColumn(modifier = Modifier.weight(1f)) {
+                        val filtered = existingProducts.filter {
+                            it.name.contains(searchQuery, ignoreCase = true)
+                        }
+                        items(filtered) { product ->
+                            ListItem(
+                                headlineContent = { Text(product.name) },
+                                supportingContent = { Text("${product.category} • ${product.unit}") },
+                                modifier = Modifier.clickable {
+                                    onAssignToExisting(request.id, product.id, request.barcode)
+                                    showAssignDialog = false
+                                }
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                TextButton(onClick = { showAssignDialog = false }) { Text("Anuluj") }
+            }
+        )
+    }
+
+    // --- WIDOK KARTY ---
     Card(
         modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
@@ -332,11 +393,17 @@ fun AdminRequestCard(
                 Text("Kod: ${request.barcode}", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
             }
 
-            // Czerwony X do odrzucenia
+            // Przycisk: ODRZUĆ (X)
             IconButton(onClick = { onReject(request.id) }) {
                 Icon(Icons.Default.Close, contentDescription = "Odrzuć", tint = Color.Red)
             }
 
+            // Przycisk: PRZYPISZ (Link)
+            IconButton(onClick = { showAssignDialog = true }) {
+                Icon(Icons.Default.Link, contentDescription = "Przypisz", tint = MaterialTheme.colorScheme.primary)
+            }
+
+            // Przycisk: NOWY (Zatwierdź)
             Button(onClick = { showEditDialog = true }) {
                 Text("Zatwierdź")
             }

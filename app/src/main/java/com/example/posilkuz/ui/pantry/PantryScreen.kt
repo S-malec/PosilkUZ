@@ -24,6 +24,8 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.posilkuz.data.model.Product
+import com.example.posilkuz.ui.components.AppSnackbar
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,19 +40,50 @@ fun PantryScreen(
     val sortOrder by viewModel.sortOrder.collectAsState()
     var showBarcodeDialog by remember { mutableStateOf(false) }
     val unrecognizedBarcode by viewModel.unrecognizedBarcode.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
     unrecognizedBarcode?.let { barcode ->
         NewProductRequestDialog(
             barcode = barcode,
             onDismiss = { viewModel.closeRequestDialog() },
-            onSubmit = { name, bCode -> viewModel.requestNewProduct(name, bCode) }
+            onSubmit = { name, bCode ->
+                viewModel.requestNewProduct(name, bCode)
+                scope.launch {
+                    snackbarHostState.showSnackbar("Wysłano prośbę o dodanie: $name")
+                }
+            }
         )
     }
 
     if (showBarcodeDialog) {
         BarcodeScannerDialog(
             onDismiss = { showBarcodeDialog = false },
-            onBarcodeScanned = { barcode -> viewModel.addProductByBarcode(barcode) }
+            onBarcodeScanned = { barcode ->
+                showBarcodeDialog = false
+
+                scope.launch {
+                    try {
+                        // Wywołujemy funkcję suspend i czekamy na wynik
+                        val result = viewModel.addProductByBarcode(barcode)
+
+                        when (result) {
+                            PantryViewModel.AddProductResult.SUCCESS -> {
+                                snackbarHostState.showSnackbar("Produkt został dodany do spiżarni!")
+                            }
+                            PantryViewModel.AddProductResult.NOT_FOUND -> {
+                                // Tutaj nie musisz dawać snackbara, bo ViewModel
+                                // ustawił unrecognizedBarcode i wyskoczy NewProductRequestDialog
+                            }
+                            PantryViewModel.AddProductResult.ERROR -> {
+                                snackbarHostState.showSnackbar("Błąd: Nie udało się dodać produktu.")
+                            }
+                        }
+                    } catch (e: Exception) {
+                        snackbarHostState.showSnackbar("Wystąpił nieoczekiwany błąd.")
+                    }
+                }
+            }
         )
     }
 
@@ -58,6 +91,11 @@ fun PantryScreen(
     // Dzięki temu FAB wewnątrz Scaffolda "podskoczy" nad pasek nawigacji.
     Box(modifier = Modifier.padding(innerPadding)) {
         Scaffold(
+            snackbarHost = {
+                SnackbarHost(hostState = snackbarHostState) { data ->
+                    AppSnackbar(data) // Używamy naszego komponentu z pliku
+                }
+            },
             topBar = {
                 Surface(tonalElevation = 3.dp) {
                     Column {
