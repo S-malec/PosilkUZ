@@ -5,5 +5,5 @@ data class Product(
     val name: String = "",       // np. "Cukier"
     val category: String = "",   // np. "Sypkie", "Nabiał"
     val unit: String = "",       // np. "g", "ml", "szt"
-    val barcode: String? = null
+    val barcodes: List<String> = emptyList()
 )

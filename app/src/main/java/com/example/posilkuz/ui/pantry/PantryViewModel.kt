@@ -22,6 +22,9 @@ class PantryViewModel(
             initialValue = emptySet()
         )
 
+    private val _unrecognizedBarcode = MutableStateFlow<String?>(null)
+    val unrecognizedBarcode = _unrecognizedBarcode.asStateFlow()
+
     private val _isLoading = MutableStateFlow(true)
     val isLoading = _isLoading.asStateFlow()
 
@@ -81,16 +84,41 @@ class PantryViewModel(
         }
     }
 
-    fun addProductByBarcode(barcode: String) {
+    // Funkcja wywoływana z formularza
+    fun requestNewProduct(name: String, barcode: String) {
         viewModelScope.launch {
-            val product = _allProducts.value.find { it.barcode == barcode }
+            repository.submitProductRequest(name, barcode)
+            _unrecognizedBarcode.value = null // Zamknij formularz
+        }
+    }
+
+    fun closeRequestDialog() {
+        _unrecognizedBarcode.value = null
+    }
+
+    // Zaktualizowana funkcja skanowania
+    suspend fun addProductByBarcode(barcode: String): AddProductResult {
+        return try {
+            // 1. Szukamy produktu w załadowanej już liście (pamiętaj o modelu z listą barcodes!)
+            val product = _allProducts.value.find { it.barcodes.contains(barcode) }
 
             if (product != null) {
+                // 2. Jeśli produkt istnieje, dodajemy go do spiżarni w Firebase
                 repository.addProductToPantry(product.id)
+                AddProductResult.SUCCESS
             } else {
-                // POZNIEJ DODAJ TU DO LISTY PRODUKTOW DO ZATWIERDZENIA I WYSWIETL Z TYM ZWIAZANY KOMUNIKAT
+                // 3. Jeśli nie znaleziono, ustawiamy unrecognizedBarcode, by UI pokazało NewProductRequestDialog
+                _unrecognizedBarcode.value = barcode
+                AddProductResult.NOT_FOUND
             }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            AddProductResult.ERROR
         }
+    }
+
+    enum class AddProductResult {
+        SUCCESS, NOT_FOUND, ERROR
     }
 
     fun toggleSortOrder() {
