@@ -37,6 +37,15 @@ fun PantryScreen(
     val searchQuery by viewModel.searchQuery.collectAsState()
     val sortOrder by viewModel.sortOrder.collectAsState()
     var showBarcodeDialog by remember { mutableStateOf(false) }
+    val unrecognizedBarcode by viewModel.unrecognizedBarcode.collectAsState()
+
+    unrecognizedBarcode?.let { barcode ->
+        NewProductRequestDialog(
+            barcode = barcode,
+            onDismiss = { viewModel.closeRequestDialog() },
+            onSubmit = { name, bCode -> viewModel.requestNewProduct(name, bCode) }
+        )
+    }
 
     if (showBarcodeDialog) {
         BarcodeScannerDialog(
@@ -253,4 +262,39 @@ fun ProductRow(
             )
         )
     }
+}
+
+@Composable
+fun NewProductRequestDialog(
+    barcode: String,
+    onDismiss: () -> Unit,
+    onSubmit: (String, String) -> Unit
+) {
+    var productName by remember { mutableStateOf("") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Nieznany produkt") },
+        text = {
+            Column {
+                Text("Nie znaleźliśmy produktu o kodzie: $barcode. Możesz wysłać propozycję dodania go do bazy.")
+                Spacer(modifier = Modifier.height(16.dp))
+                OutlinedTextField(
+                    value = productName,
+                    onValueChange = { productName = it },
+                    label = { Text("Nazwa produktu") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                enabled = productName.isNotBlank(),
+                onClick = { onSubmit(productName, barcode) }
+            ) { Text("Wyślij prośbę") }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Anuluj") }
+        }
+    )
 }

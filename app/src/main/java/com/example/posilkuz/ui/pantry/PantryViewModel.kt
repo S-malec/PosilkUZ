@@ -22,6 +22,9 @@ class PantryViewModel(
             initialValue = emptySet()
         )
 
+    private val _unrecognizedBarcode = MutableStateFlow<String?>(null)
+    val unrecognizedBarcode = _unrecognizedBarcode.asStateFlow()
+
     private val _isLoading = MutableStateFlow(true)
     val isLoading = _isLoading.asStateFlow()
 
@@ -81,14 +84,29 @@ class PantryViewModel(
         }
     }
 
+    // Funkcja wywoływana z formularza
+    fun requestNewProduct(name: String, barcode: String) {
+        viewModelScope.launch {
+            repository.submitProductRequest(name, barcode)
+            _unrecognizedBarcode.value = null // Zamknij formularz
+        }
+    }
+
+    fun closeRequestDialog() {
+        _unrecognizedBarcode.value = null
+    }
+
+    // Zaktualizowana funkcja skanowania
     fun addProductByBarcode(barcode: String) {
         viewModelScope.launch {
-            val product = _allProducts.value.find { it.barcode == barcode }
+            // Szukamy w tablicy barcodes (musisz zaktualizować model Product w Kotlin!)
+            val product = _allProducts.value.find { it.barcodes.contains(barcode) }
 
             if (product != null) {
                 repository.addProductToPantry(product.id)
             } else {
-                // POZNIEJ DODAJ TU DO LISTY PRODUKTOW DO ZATWIERDZENIA I WYSWIETL Z TYM ZWIAZANY KOMUNIKAT
+                // Jeśli nie znaleziono, zapisujemy kod, co wywoła pokazanie formularza w UI
+                _unrecognizedBarcode.value = barcode
             }
         }
     }
