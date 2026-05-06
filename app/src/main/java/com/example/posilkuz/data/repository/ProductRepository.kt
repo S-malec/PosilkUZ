@@ -103,4 +103,71 @@ class ProductRepository(
             // Obsłuż błąd
         }
     }
+
+    // W ProductRepository.kt
+    suspend fun submitProductRequest(name: String, barcode: String) {
+        val userId = auth.currentUser?.uid ?: "anon"
+        val request = hashMapOf(
+            "name" to name,
+            "barcode" to barcode,
+            "requestedBy" to userId,
+            "status" to "pending",
+            "timestamp" to FieldValue.serverTimestamp()
+        )
+        firestore.collection("product_requests").add(request).await()
+    }
+
+    // Funkcja dla admina do zatwierdzenia
+    suspend fun approveProduct(requestId: String, productName: String, barcode: String, category: String) {
+        // 1. Dodaj produkt do głównej bazy 'products'
+        val newProduct = hashMapOf(
+            "name" to productName,
+            "barcodes" to listOf(barcode),
+            "category" to category,
+            "unit" to "szt."
+        )
+        firestore.collection("products").add(newProduct).await()
+
+        // 2. Usuń prośbę lub zmień status
+        firestore.collection("product_requests").document(requestId).delete().await()
+    }
+
+    suspend fun addBarcodeToExistingProduct(productId: String, newBarcode: String) {
+        firestore.collection("products").document(productId)
+            .update("barcodes", FieldValue.arrayUnion(newBarcode))
+            .await()
+    }
+
+    suspend fun approveProductRequest(requestId: String, product: Product) {
+        val batch = firestore.batch()
+
+        // Jeśli admin podał ID, używamy go. Jeśli nie, tworzymy nowy dokument z auto-ID.
+        val newProductRef = if (product.id.isNotBlank()) {
+            firestore.collection("products").document(product.id)
+        } else {
+            firestore.collection("products").document()
+        }
+
+        val productData = hashMapOf(
+            "name" to product.name,
+            "category" to product.category,
+            "unit" to product.unit,
+            "barcodes" to product.barcodes
+        )
+
+        batch.set(newProductRef, productData)
+
+        // Usunięcie zgłoszenia po pomyślnym dodaniu produktu
+        val requestRef = firestore.collection("product_requests").document(requestId)
+        batch.delete(requestRef)
+
+        batch.commit().await()
+    }
+
+    // Funkcja do odrzucania zgłoszenia
+    suspend fun rejectProductRequest(requestId: String) {
+        firestore.collection("product_requests").document(requestId)
+            .delete()
+            .await()
+    }
 }
