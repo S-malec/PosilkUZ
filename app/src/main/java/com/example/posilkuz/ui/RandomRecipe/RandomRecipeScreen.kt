@@ -45,6 +45,8 @@ fun RandomRecipeScreen(
     onBack: () -> Unit,
     viewModel: RandomRecipeViewModel = viewModel()
 ) {
+    val userPantryIds by viewModel.userPantryIds.collectAsState()
+
     val context = LocalContext.current
     val recipe by viewModel.recipe.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
@@ -138,7 +140,7 @@ fun RandomRecipeScreen(
                 ) {
                     RecipeCard(
                         recipe = recipe!!,
-                        userPantryIds = emptySet()
+                        userPantryIds = userPantryIds
                     )
                     Button(
                         onClick = { viewModel.dismissRecipe() },
@@ -149,7 +151,7 @@ fun RandomRecipeScreen(
                 }
                 else -> Box(Modifier.fillMaxSize()) {
                     Text(
-                        text = "Potrząścnij telefonem!",
+                        text = "Potrząśnij telefonem!",
                         style = MaterialTheme.typography.headlineMedium,
                         modifier = Modifier.align(Alignment.Center)
                     )

@@ -3,13 +3,16 @@ package com.example.posilkuz.ui.RandomRecipe
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.posilkuz.data.model.Recipe
+import com.example.posilkuz.data.repository.ProductRepository
 import com.example.posilkuz.data.repository.RecipeRepository
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.stateIn
 
-class RandomRecipeViewModel(private val recipieRepository: RecipeRepository = RecipeRepository()) : ViewModel() {
+class RandomRecipeViewModel(private val recipieRepository: RecipeRepository = RecipeRepository(), private val productRepository: ProductRepository = ProductRepository() ) : ViewModel() {
     private val _recipe = MutableStateFlow<Recipe?>(null)
     val recipe: StateFlow<Recipe?> = _recipe.asStateFlow()
 
@@ -26,6 +29,13 @@ class RandomRecipeViewModel(private val recipieRepository: RecipeRepository = Re
     var velocityY = 0f
     var accelX = 0f
     var accelY = 0f
+
+    val userPantryIds = productRepository.getUserPantryIdsFlow()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptySet()
+        )
 
     fun onAcceleration(x: Float, y: Float) {
         if (_recipe.value != null || _isLoading.value) return
@@ -79,4 +89,5 @@ class RandomRecipeViewModel(private val recipieRepository: RecipeRepository = Re
     fun dismissRecipe() {
         _recipe.value = null
     }
+
 }
