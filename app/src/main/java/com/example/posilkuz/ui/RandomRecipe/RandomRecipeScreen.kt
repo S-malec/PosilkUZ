@@ -6,18 +6,26 @@ import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -35,6 +43,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.posilkuz.data.repository.PinnedRecipeRepository
 import com.example.posilkuz.ui.recipe.RecipeCard
 import kotlinx.coroutines.delay
 import kotlin.math.sqrt
@@ -93,7 +102,7 @@ fun RandomRecipeScreen(
 
 
             override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) = Unit
-            }
+        }
         accelerometr?.let {
             sensorManager?.registerListener(
                 listener,
@@ -135,18 +144,44 @@ fun RandomRecipeScreen(
         ) {
             when {
                 isLoading -> CircularProgressIndicator()
-                recipe != null -> Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    RecipeCard(
-                        recipe = recipe!!,
-                        userPantryIds = userPantryIds
-                    )
-                    Button(
-                        onClick = { viewModel.dismissRecipe() },
-                        modifier = Modifier.padding(top = 16.dp)
+                recipe != null -> {
+                    val currentRecipe = recipe!!
+                    val pinnedRecipe by PinnedRecipeRepository.pinnedRecipe.collectAsState()
+                    val isPinned = pinnedRecipe?.title == currentRecipe.title
+
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Text("Losuj ponownie")
+                        RecipeCard(
+                            recipe = currentRecipe,
+                            userPantryIds = userPantryIds
+                        )
+                        
+                        Button(
+                            onClick = { PinnedRecipeRepository.toggle(currentRecipe) },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = if (isPinned)
+                                    MaterialTheme.colorScheme.secondary
+                                else
+                                    MaterialTheme.colorScheme.primary
+                            ),
+                            modifier = Modifier.padding(top = 8.dp)
+                        ) {
+                            Icon(
+                                imageVector = if (isPinned) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(if (isPinned) "Odepnij z ekranu głównego" else "Przypnij na ekran główny")
+                        }
+                        
+                        Button(
+                            onClick = { viewModel.dismissRecipe() },
+                            modifier = Modifier.padding(top = 8.dp)
+                        ) {
+                            Text("Losuj ponownie")
+                        }
                     }
                 }
                 else -> Box(Modifier.fillMaxSize()) {
