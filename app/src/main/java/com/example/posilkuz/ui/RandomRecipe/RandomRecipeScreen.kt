@@ -158,7 +158,7 @@ fun RandomRecipeScreen(
                         )
                         
                         Button(
-                            onClick = { PinnedRecipeRepository.toggle(currentRecipe) },
+                            onClick = { PinnedRecipeRepository.toggle(context, currentRecipe) },
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = if (isPinned)
                                     MaterialTheme.colorScheme.secondary

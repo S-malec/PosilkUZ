@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.posilkuz.data.model.Recipe
@@ -87,6 +88,8 @@ fun RecipeCard(
     userPantryIds: Set<String>,
     onPinToggle: ((Recipe) -> Unit)? = null
 ) {
+    val context = LocalContext.current
+
     var isExpanded by remember { mutableStateOf(false) }
     val rotationState by animateFloatAsState(targetValue = if (isExpanded) 180f else 0f)
 
@@ -117,7 +120,7 @@ fun RecipeCard(
                 // Przycisk przypięcia
                 IconButton(
                     onClick = {
-                        PinnedRecipeRepository.toggle(recipe)
+                        PinnedRecipeRepository.toggle(context,recipe)
                         onPinToggle?.invoke(recipe)
                     }
                 ) {

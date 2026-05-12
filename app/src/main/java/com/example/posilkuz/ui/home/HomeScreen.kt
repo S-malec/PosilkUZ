@@ -21,6 +21,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.example.posilkuz.data.model.Recipe
 import com.example.posilkuz.data.repository.PinnedRecipeRepository
@@ -36,6 +37,7 @@ fun HomeScreen(
     onShowMaps: () -> Unit,
     innerPadding: PaddingValues = PaddingValues()
 ) {
+    val context = LocalContext.current
     val auth = FirebaseAuth.getInstance()
     val db = FirebaseFirestore.getInstance()
     var nickname by remember { mutableStateOf("...") }
@@ -91,7 +93,7 @@ fun HomeScreen(
             pinnedRecipe?.let { recipe ->
                 PinnedRecipeCard(
                     recipe = recipe,
-                    onUnpin = { PinnedRecipeRepository.unpin() }
+                    onUnpin = { PinnedRecipeRepository.unpin(context) }
                 )
             }
         }
@@ -130,6 +132,7 @@ fun HomeScreen(
 
 @Composable
 private fun PinnedRecipeCard(recipe: Recipe, onUnpin: () -> Unit) {
+    val context = LocalContext.current
     var isExpanded by remember { mutableStateOf(false) }
     val rotationState by animateFloatAsState(targetValue = if (isExpanded) 180f else 0f)
 
