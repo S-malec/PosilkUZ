@@ -1,5 +1,11 @@
 package com.example.posilkuz.ui.home
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -12,8 +18,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import com.example.posilkuz.data.model.Recipe
+import com.example.posilkuz.data.repository.PinnedRecipeRepository
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -29,6 +39,8 @@ fun HomeScreen(
     val auth = FirebaseAuth.getInstance()
     val db = FirebaseFirestore.getInstance()
     var nickname by remember { mutableStateOf("...") }
+
+    val pinnedRecipe by PinnedRecipeRepository.pinnedRecipe.collectAsState()
 
     LaunchedEffect(Unit) {
         val userId = auth.currentUser?.uid
@@ -48,7 +60,7 @@ fun HomeScreen(
             .padding(horizontal = 16.dp, vertical = 20.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Nagłówek
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -70,12 +82,24 @@ fun HomeScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(4.dp))
 
-        // Kafelek sklepów — wyróżniony, pełna szerokość
+        AnimatedVisibility(
+            visible = pinnedRecipe != null,
+            enter = slideInVertically(initialOffsetY = { -it }) + fadeIn(),
+            exit = slideOutVertically(targetOffsetY = { -it }) + fadeOut()
+        ) {
+            pinnedRecipe?.let { recipe ->
+                PinnedRecipeCard(
+                    recipe = recipe,
+                    onUnpin = { PinnedRecipeRepository.unpin() }
+                )
+            }
+        }
+
+
         MapsCard(onShowMaps = onShowMaps)
 
-        // Siatka szybkich akcji
+
         Text(
             text = "Szybkie akcje",
             style = MaterialTheme.typography.titleMedium,
@@ -105,6 +129,133 @@ fun HomeScreen(
 }
 
 @Composable
+private fun PinnedRecipeCard(recipe: Recipe, onUnpin: () -> Unit) {
+    var isExpanded by remember { mutableStateOf(false) }
+    val rotationState by animateFloatAsState(targetValue = if (isExpanded) 180f else 0f)
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(CardDefaults.shape)
+            .clickable { isExpanded = !isExpanded },
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    modifier = Modifier.weight(1f),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Bookmark,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.secondary,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Text(
+                        text = "Przypięty przepis",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                }
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(
+                        onClick = onUnpin,
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = "Odepnij",
+                            tint = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.6f),
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                    Icon(
+                        imageVector = Icons.Default.ExpandMore,
+                        contentDescription = null,
+                        modifier = Modifier.graphicsLayer { rotationZ = rotationState },
+                        tint = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.6f)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = recipe.title,
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onSecondaryContainer
+            )
+
+            AnimatedVisibility(visible = !isExpanded && recipe.ingredientIds.isNotEmpty()) {
+                Text(
+                    text = "${recipe.ingredientIds.size} składników",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f),
+                    modifier = Modifier.padding(top = 6.dp)
+                )
+            }
+
+            AnimatedVisibility(visible = isExpanded) {
+                Column(modifier = Modifier.padding(top = 8.dp)) {
+                    Text(
+                        text = "Składniki:",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+
+                    recipe.ingredientIds.forEach { ingredientId ->
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(vertical = 2.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.RadioButtonUnchecked,
+                                contentDescription = null,
+                                tint = Color.Gray,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = ingredientId.replace("_", " "),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSecondaryContainer
+                            )
+                        }
+                    }
+
+                    HorizontalDivider(
+                        modifier = Modifier.padding(vertical = 12.dp),
+                        color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.1f)
+                    )
+
+                    Text(
+                        text = "Instrukcja:",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = recipe.instructions,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
 private fun MapsCard(onShowMaps: () -> Unit) {
     Card(
         modifier = Modifier
@@ -123,7 +274,6 @@ private fun MapsCard(onShowMaps: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Ikona w kółku
             Surface(
                 shape = RoundedCornerShape(12.dp),
                 color = MaterialTheme.colorScheme.primary,
@@ -138,7 +288,6 @@ private fun MapsCard(onShowMaps: () -> Unit) {
                     )
                 }
             }
-
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = "Znajdź sklep spożywczy",
@@ -151,7 +300,6 @@ private fun MapsCard(onShowMaps: () -> Unit) {
                     color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
                 )
             }
-
             Icon(
                 imageVector = Icons.Default.ArrowForward,
                 contentDescription = null,
@@ -190,11 +338,7 @@ private fun QuickActionCard(
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(28.dp)
             )
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.onSurface
-            )
+            Text(text = title, style = MaterialTheme.typography.titleSmall)
             Text(
                 text = subtitle,
                 style = MaterialTheme.typography.bodySmall,

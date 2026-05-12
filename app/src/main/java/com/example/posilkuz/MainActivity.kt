@@ -33,6 +33,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.posilkuz.ui.RandomRecipe.RandomRecipeScreen
 import com.example.posilkuz.ui.auth.AuthScreen
 import com.example.posilkuz.ui.home.HomeScreen
 import com.example.posilkuz.ui.navigation.openGroceryMaps
@@ -97,9 +98,15 @@ class MainActivity : ComponentActivity() {
                                         popUpTo("main") { inclusive = true }
                                     }
                                 },
-                                onShowMaps = onShowMaps
+                                onShowMaps = onShowMaps,
+                                        onNavigateToRandom = { navController.navigate("random_recipe") }  // ← DODAJ
                             )
                         }
+
+                        composable("random_recipe") {  // ← DODAJ
+                            RandomRecipeScreen(onBack = { navController.popBackStack() })
+                        }
+
                     }
                 }
             }
@@ -113,7 +120,8 @@ fun MainPagerScreen(
     currentTheme: ThemeMode,
     onThemeChange: (ThemeMode) -> Unit,
     onLogout: () -> Unit,
-    onShowMaps: () -> Unit
+    onShowMaps: () -> Unit,
+    onNavigateToRandom: () -> Unit
 ) {
     val pagerState = rememberPagerState(pageCount = { mainTabs.size })
     val coroutineScope = rememberCoroutineScope()
@@ -161,7 +169,10 @@ fun MainPagerScreen(
                     innerPadding = innerPadding
                 )
                 1 -> PantryScreen(innerPadding = innerPadding)
-                2 -> RecipesScreen(innerPadding = innerPadding)
+                2 -> RecipesScreen(
+                    innerPadding = innerPadding,
+                    onRandomClick = onNavigateToRandom
+                )
                 3 -> ProfileScreen(
                     currentTheme = currentTheme,
                     onThemeChange = onThemeChange,

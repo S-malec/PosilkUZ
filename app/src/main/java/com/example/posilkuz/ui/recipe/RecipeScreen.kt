@@ -7,9 +7,12 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.RadioButtonUnchecked
+import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,24 +23,34 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.posilkuz.data.model.Recipe
+import com.example.posilkuz.data.repository.PinnedRecipeRepository
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RecipesScreen(
     viewModel: RecipesViewModel = viewModel(),
-    innerPadding: PaddingValues = PaddingValues()  // Padding z zewnętrznego Scaffolda
+    innerPadding: PaddingValues = PaddingValues(),
+    onRandomClick: () -> Unit = {}
 ) {
     val recipes by viewModel.recipes.collectAsState()
     val pantryIds by viewModel.userPantryIds.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
 
-    // Własny Scaffold tylko dla TopBar — bez BottomBar
     Scaffold(
         topBar = {
-            CenterAlignedTopAppBar(
-                title = { Text("Nasze przepisy") }
+            CenterAlignedTopAppBar(title = { Text("Nasze przepisy") })
+        },
+        floatingActionButton = {
+            ExtendedFloatingActionButton(
+                onClick = onRandomClick,
+                icon = { Icon(Icons.Default.Receipt, contentDescription = null) },
+                text = { Text("Losuj") },
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding())
             )
-        }
+        },
+        floatingActionButtonPosition = FabPosition.End
     ) { scaffoldPadding ->
         if (isLoading) {
             Box(
@@ -69,9 +82,16 @@ fun RecipesScreen(
 }
 
 @Composable
-fun RecipeCard(recipe: Recipe, userPantryIds: Set<String>) {
+fun RecipeCard(
+    recipe: Recipe,
+    userPantryIds: Set<String>,
+    onPinToggle: ((Recipe) -> Unit)? = null
+) {
     var isExpanded by remember { mutableStateOf(false) }
     val rotationState by animateFloatAsState(targetValue = if (isExpanded) 180f else 0f)
+
+    val pinnedRecipe by PinnedRecipeRepository.pinnedRecipe.collectAsState()
+    val isPinned = pinnedRecipe?.title == recipe.title
 
     Card(
         modifier = Modifier
@@ -80,7 +100,10 @@ fun RecipeCard(recipe: Recipe, userPantryIds: Set<String>) {
             .clip(CardDefaults.shape)
             .clickable { isExpanded = !isExpanded },
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
+            containerColor = if (isPinned)
+                MaterialTheme.colorScheme.secondaryContainer
+            else
+                MaterialTheme.colorScheme.surfaceVariant
         )
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -90,6 +113,24 @@ fun RecipeCard(recipe: Recipe, userPantryIds: Set<String>) {
                     style = MaterialTheme.typography.headlineSmall,
                     modifier = Modifier.weight(1f)
                 )
+
+                // Przycisk przypięcia
+                IconButton(
+                    onClick = {
+                        PinnedRecipeRepository.toggle(recipe)
+                        onPinToggle?.invoke(recipe)
+                    }
+                ) {
+                    Icon(
+                        imageVector = if (isPinned) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
+                        contentDescription = if (isPinned) "Odepnij przepis" else "Przypnij na ekran główny",
+                        tint = if (isPinned)
+                            MaterialTheme.colorScheme.secondary
+                        else
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
                 Icon(
                     imageVector = Icons.Default.ExpandMore,
                     contentDescription = null,
@@ -97,8 +138,17 @@ fun RecipeCard(recipe: Recipe, userPantryIds: Set<String>) {
                 )
             }
 
+            if (isPinned) {
+                Text(
+                    text = "📌 Przypięty na ekranie głównym",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.secondary,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+            }
+
             AnimatedVisibility(visible = isExpanded) {
-                Column(modifier = Modifier.padding(top = 16.dp)) {
+                Column(modifier = Modifier.padding(top = 8.dp)) {
                     Text(
                         text = "Składniki:",
                         style = MaterialTheme.typography.titleMedium,
