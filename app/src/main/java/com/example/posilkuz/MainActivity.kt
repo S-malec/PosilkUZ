@@ -33,6 +33,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.posilkuz.data.repository.PinnedRecipeRepository
 import com.example.posilkuz.ui.RandomRecipe.RandomRecipeScreen
 import com.example.posilkuz.ui.auth.AuthScreen
 import com.example.posilkuz.ui.home.HomeScreen
@@ -61,6 +62,8 @@ val mainTabs = listOf(
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        PinnedRecipeRepository.initialize(this)
 
         enableEdgeToEdge()
         setContent {
