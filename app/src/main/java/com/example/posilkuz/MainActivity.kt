@@ -1,9 +1,13 @@
 package com.example.posilkuz
 
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.fillMaxSize
@@ -30,6 +34,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -43,6 +48,7 @@ import com.example.posilkuz.ui.profile.ProfileScreen
 import com.example.posilkuz.ui.recipe.RecipesScreen
 import com.example.posilkuz.ui.theme.PosilkUZTheme
 import com.example.posilkuz.ui.theme.ThemeMode
+import com.example.posilkuz.utils.NotificationHelper // Import naszego nowego Helpera
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
@@ -51,7 +57,6 @@ data class TabItem(
     val icon: ImageVector
 )
 
-// 4 zakładki — Sklepy dostępne jako kafelek na HomeScreen
 val mainTabs = listOf(
     TabItem("Główna", Icons.Default.Home),
     TabItem("Spiżarnia", Icons.Default.ShoppingCart),
@@ -67,7 +72,6 @@ class MainActivity : ComponentActivity() {
 
         enableEdgeToEdge()
         setContent {
-            // Stan motywu z commitu kolegi — hoistowany tutaj, żeby działał globalnie
             var currentTheme by remember { mutableStateOf(ThemeMode.SYSTEM) }
 
             val navController = rememberNavController()
@@ -76,8 +80,51 @@ class MainActivity : ComponentActivity() {
             val context = LocalContext.current
             val onShowMaps: () -> Unit = { context.openGroceryMaps() }
 
+            // Inicjalizacja NotificationHelpera
+            val notificationHelper = remember { NotificationHelper(context) }
+
+            // Launcher do pytania o uprawnienia do powiadomień (Android 13+)
+            val permissionLauncher = rememberLauncherForActivityResult(
+                contract = ActivityResultContracts.RequestPermission()
+            ) { isGranted ->
+                if (isGranted) {
+                    notificationHelper.sendTestNotification()
+                }
+            }
+
+            // Funkcja obsługująca testowe powiadomienie z Profilu
+            val handleTestNotification = {
+                if (Build.VERSION.SDK_INT >= 33) {
+                    val hasPermission = ContextCompat.checkSelfPermission(
+                        context, "android.permission.POST_NOTIFICATIONS"
+                    ) == PackageManager.PERMISSION_GRANTED
+                    if (hasPermission) {
+                        notificationHelper.sendTestNotification()
+                    } else {
+                        permissionLauncher.launch("android.permission.POST_NOTIFICATIONS")
+                    }
+                } else {
+                    notificationHelper.sendTestNotification() // Dla starszych Androidów po prostu wysyłamy
+                }
+            }
+
+            // Funkcja obsługująca przypomnienie o przypiętym przepisie
+            val handleRecipeReminder = { recipeName: String ->
+                if (Build.VERSION.SDK_INT >= 33) {
+                    val hasPermission = ContextCompat.checkSelfPermission(
+                        context, "android.permission.POST_NOTIFICATIONS"
+                    ) == PackageManager.PERMISSION_GRANTED
+                    if (hasPermission) {
+                        notificationHelper.sendRecipeReminder(recipeName)
+                    } else {
+                        permissionLauncher.launch("android.permission.POST_NOTIFICATIONS")
+                    }
+                } else {
+                    notificationHelper.sendRecipeReminder(recipeName)
+                }
+            }
+
             PosilkUZTheme(themeMode = currentTheme) {
-                // Surface z commitu kolegi — naprawia tło przy zmianie motywu
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
@@ -102,14 +149,15 @@ class MainActivity : ComponentActivity() {
                                     }
                                 },
                                 onShowMaps = onShowMaps,
-                                        onNavigateToRandom = { navController.navigate("random_recipe") }  // ← DODAJ
+                                onNavigateToRandom = { navController.navigate("random_recipe") },
+                                onTestNotification = handleTestNotification, // Przekazujemy funkcje dalej
+                                onRecipeReminder = handleRecipeReminder
                             )
                         }
 
-                        composable("random_recipe") {  // ← DODAJ
+                        composable("random_recipe") {
                             RandomRecipeScreen(onBack = { navController.popBackStack() })
                         }
-
                     }
                 }
             }
@@ -124,7 +172,9 @@ fun MainPagerScreen(
     onThemeChange: (ThemeMode) -> Unit,
     onLogout: () -> Unit,
     onShowMaps: () -> Unit,
-    onNavigateToRandom: () -> Unit
+    onNavigateToRandom: () -> Unit,
+    onTestNotification: () -> Unit,
+    onRecipeReminder: (String) -> Unit
 ) {
     val pagerState = rememberPagerState(pageCount = { mainTabs.size })
     val coroutineScope = rememberCoroutineScope()
@@ -169,6 +219,7 @@ fun MainPagerScreen(
                         coroutineScope.launch { pagerState.animateScrollToPage(3) }
                     },
                     onShowMaps = onShowMaps,
+                    onRecipeReminder = onRecipeReminder, // Przekazujemy do HomeScreen
                     innerPadding = innerPadding
                 )
                 1 -> PantryScreen(innerPadding = innerPadding)
@@ -179,7 +230,8 @@ fun MainPagerScreen(
                 3 -> ProfileScreen(
                     currentTheme = currentTheme,
                     onThemeChange = onThemeChange,
-                    innerPadding = innerPadding
+                    innerPadding = innerPadding,
+                    onTestNotification = onTestNotification // Przekazujemy do ProfileScreen
                 )
             }
         }

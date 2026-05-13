@@ -36,11 +36,11 @@ enum class ProfileSubScreen {
 fun ProfileScreen(
     currentTheme: ThemeMode,
     onThemeChange: (ThemeMode) -> Unit,
-    innerPadding: PaddingValues = PaddingValues()
+    innerPadding: PaddingValues = PaddingValues(),
+    onTestNotification: () -> Unit = {} // Nowy parametr dla testowego powiadomienia
 ) {
     var currentSubScreen by remember { mutableStateOf(ProfileSubScreen.MAIN) }
 
-    // Obsługa przycisku wstecz
     BackHandler(enabled = currentSubScreen != ProfileSubScreen.MAIN) {
         currentSubScreen = when (currentSubScreen) {
             ProfileSubScreen.DISPLAY -> ProfileSubScreen.SETTINGS
@@ -59,14 +59,15 @@ fun ProfileScreen(
         when (currentSubScreen) {
             ProfileSubScreen.MAIN -> ProfileMainView(
                 onNavigateToSettings = { currentSubScreen = ProfileSubScreen.SETTINGS },
-                onNavigateToAdmin = { currentSubScreen = ProfileSubScreen.ADMIN_PANEL } // <-- Przekazanie akcji
+                onNavigateToAdmin = { currentSubScreen = ProfileSubScreen.ADMIN_PANEL }
             )
             ProfileSubScreen.ADMIN_PANEL -> AdminRequestsView(
                 onBack = { currentSubScreen = ProfileSubScreen.MAIN }
             )
             ProfileSubScreen.SETTINGS -> SettingsView(
                 onBack = { currentSubScreen = ProfileSubScreen.MAIN },
-                onNavigateToDisplay = { currentSubScreen = ProfileSubScreen.DISPLAY }
+                onNavigateToDisplay = { currentSubScreen = ProfileSubScreen.DISPLAY },
+                onTestNotification = onTestNotification // Przekazujemy funkcję do widoku ustawień
             )
             ProfileSubScreen.DISPLAY -> DisplaySettingsView(
                 currentTheme = currentTheme,
@@ -88,7 +89,6 @@ fun ProfileMainView(onNavigateToSettings: () -> Unit, onNavigateToAdmin: () -> U
         modifier = Modifier.clickable { onNavigateToSettings() }
     )
 
-    // Przycisk widoczny dla administratora
     ListItem(
         headlineContent = { Text("Zatwierdź produkty") },
         leadingContent = { Icon(Icons.Default.FactCheck, contentDescription = null) },
@@ -98,7 +98,11 @@ fun ProfileMainView(onNavigateToSettings: () -> Unit, onNavigateToAdmin: () -> U
 }
 
 @Composable
-fun SettingsView(onBack: () -> Unit, onNavigateToDisplay: () -> Unit) {
+fun SettingsView(
+    onBack: () -> Unit,
+    onNavigateToDisplay: () -> Unit,
+    onTestNotification: () -> Unit // Odbieramy funkcję powiadomienia
+) {
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 16.dp)) {
         IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, contentDescription = "Wstecz") }
         Text("Ustawienia", style = MaterialTheme.typography.headlineSmall)
@@ -108,6 +112,14 @@ fun SettingsView(onBack: () -> Unit, onNavigateToDisplay: () -> Unit) {
         leadingContent = { Icon(Icons.Default.DarkMode, contentDescription = "Ikona księżyca") },
         trailingContent = { Icon(Icons.Default.KeyboardArrowRight, contentDescription = null) },
         modifier = Modifier.clickable { onNavigateToDisplay() }
+    )
+
+    // Element listy odpalający testowe powiadomienie
+    ListItem(
+        headlineContent = { Text("Powiadomienie testowe") },
+        supportingContent = { Text("Sprawdź, czy powiadomienia działają") },
+        leadingContent = { Icon(Icons.Default.NotificationsActive, contentDescription = "Ikona dzwonka") },
+        modifier = Modifier.clickable { onTestNotification() }
     )
 }
 
@@ -178,7 +190,7 @@ fun AdminRequestsView(
     Scaffold(
         snackbarHost = {
             SnackbarHost(hostState = snackbarHostState) { data ->
-                AppSnackbar(data) // Ten sam komponent!
+                AppSnackbar(data)
             }
         },
         topBar = {
@@ -211,7 +223,6 @@ fun AdminRequestsView(
                                 scope.launch {
                                     try {
                                         repository.approveProductRequest(requestId, finalProduct)
-                                        // 3. Wyświetlenie powiadomienia po sukcesie
                                         snackbarHostState.showSnackbar("Dodano nowy produkt: ${finalProduct.name}")
                                     } catch (e: Exception) {
                                         snackbarHostState.showSnackbar("Błąd podczas dodawania")
@@ -229,7 +240,6 @@ fun AdminRequestsView(
                                     try {
                                         repository.addBarcodeToExistingProduct(productId, barcode)
                                         repository.rejectProductRequest(requestId)
-                                        // 4. Wyświetlenie powiadomienia po przypisaniu
                                         snackbarHostState.showSnackbar("Przypisano kod do istniejącego produktu")
                                     } catch (e: Exception) {
                                         snackbarHostState.showSnackbar("Błąd podczas przypisywania")
@@ -248,16 +258,15 @@ fun AdminRequestsView(
 @Composable
 fun AdminRequestCard(
     request: ProductRequest,
-    existingProducts: List<Product>, // DODANO
+    existingProducts: List<Product>,
     onApprove: (requestId: String, finalProduct: Product) -> Unit,
     onReject: (String) -> Unit,
-    onAssignToExisting: (requestId: String, productId: String, barcode: String) -> Unit // DODANO
+    onAssignToExisting: (requestId: String, productId: String, barcode: String) -> Unit
 ) {
     var showEditDialog by remember { mutableStateOf(false) }
     var showAssignDialog by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
 
-    // Stan formularza edycji
     var editedBarcode by remember { mutableStateOf(request.barcode) }
     var editedName by remember { mutableStateOf(request.name) }
     var editedId by remember { mutableStateOf("") }
@@ -267,7 +276,6 @@ fun AdminRequestCard(
     val categories = listOf("Warzywa", "Owoce", "Nabiał", "Mięso", "Napoje", "Pieczywo", "Produkty sypkie", "Inne")
     val units = listOf("szt", "kg", "g", "l", "ml", "opak")
 
-    // --- DIALOG: TWORZENIE NOWEGO PRODUKTU ---
     if (showEditDialog) {
         AlertDialog(
             onDismissRequest = { showEditDialog = false },
@@ -340,7 +348,6 @@ fun AdminRequestCard(
         )
     }
 
-    // --- DIALOG: PRZYPISANIE DO ISTNIEJĄCEGO ---
     if (showAssignDialog) {
         AlertDialog(
             onDismissRequest = { showAssignDialog = false },
@@ -379,7 +386,6 @@ fun AdminRequestCard(
         )
     }
 
-    // --- WIDOK KARTY ---
     Card(
         modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
@@ -393,17 +399,14 @@ fun AdminRequestCard(
                 Text("Kod: ${request.barcode}", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
             }
 
-            // Przycisk: ODRZUĆ (X)
             IconButton(onClick = { onReject(request.id) }) {
                 Icon(Icons.Default.Close, contentDescription = "Odrzuć", tint = Color.Red)
             }
 
-            // Przycisk: PRZYPISZ (Link)
             IconButton(onClick = { showAssignDialog = true }) {
                 Icon(Icons.Default.Link, contentDescription = "Przypisz", tint = MaterialTheme.colorScheme.primary)
             }
 
-            // Przycisk: NOWY (Zatwierdź)
             Button(onClick = { showEditDialog = true }) {
                 Text("Zatwierdź")
             }

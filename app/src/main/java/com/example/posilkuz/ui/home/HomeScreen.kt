@@ -35,6 +35,7 @@ fun HomeScreen(
     onNavigateToRecipes: () -> Unit,
     onNavigateToProfile: () -> Unit,
     onShowMaps: () -> Unit,
+    onRecipeReminder: (String) -> Unit = {}, // Nowy parametr dla przypomnień
     innerPadding: PaddingValues = PaddingValues()
 ) {
     val context = LocalContext.current
@@ -84,7 +85,6 @@ fun HomeScreen(
             }
         }
 
-
         AnimatedVisibility(
             visible = pinnedRecipe != null,
             enter = slideInVertically(initialOffsetY = { -it }) + fadeIn(),
@@ -93,14 +93,13 @@ fun HomeScreen(
             pinnedRecipe?.let { recipe ->
                 PinnedRecipeCard(
                     recipe = recipe,
-                    onUnpin = { PinnedRecipeRepository.unpin(context) }
+                    onUnpin = { PinnedRecipeRepository.unpin(context) },
+                    onRecipeReminder = onRecipeReminder // Przekazujemy dalej do karty
                 )
             }
         }
 
-
         MapsCard(onShowMaps = onShowMaps)
-
 
         Text(
             text = "Szybkie akcje",
@@ -131,7 +130,11 @@ fun HomeScreen(
 }
 
 @Composable
-private fun PinnedRecipeCard(recipe: Recipe, onUnpin: () -> Unit) {
+private fun PinnedRecipeCard(
+    recipe: Recipe,
+    onUnpin: () -> Unit,
+    onRecipeReminder: (String) -> Unit // Odbieramy funkcję przypomnienia
+) {
     val context = LocalContext.current
     var isExpanded by remember { mutableStateOf(false) }
     val rotationState by animateFloatAsState(targetValue = if (isExpanded) 180f else 0f)
@@ -171,6 +174,19 @@ private fun PinnedRecipeCard(recipe: Recipe, onUnpin: () -> Unit) {
                 }
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
+                    // Przycisk przypomnienia o przepisie (dzwonek)
+                    IconButton(
+                        onClick = { onRecipeReminder(recipe.title) },
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.NotificationsActive,
+                            contentDescription = "Przypomnij",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+
                     IconButton(
                         onClick = onUnpin,
                         modifier = Modifier.size(32.dp)
