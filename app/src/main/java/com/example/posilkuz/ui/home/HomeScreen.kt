@@ -25,6 +25,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.example.posilkuz.data.model.Recipe
 import com.example.posilkuz.data.repository.PinnedRecipeRepository
+import com.example.posilkuz.ui.pantry.PantryViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -35,8 +36,9 @@ fun HomeScreen(
     onNavigateToRecipes: () -> Unit,
     onNavigateToProfile: () -> Unit,
     onShowMaps: () -> Unit,
-    onRecipeReminder: (String) -> Unit = {}, // Nowy parametr dla przypomnień
-    innerPadding: PaddingValues = PaddingValues()
+    onRecipeReminder: (String) -> Unit = {},
+    innerPadding: PaddingValues = PaddingValues(),
+    pantryViewModel: PantryViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
     val context = LocalContext.current
     val auth = FirebaseAuth.getInstance()
@@ -44,6 +46,7 @@ fun HomeScreen(
     var nickname by remember { mutableStateOf("...") }
 
     val pinnedRecipe by PinnedRecipeRepository.pinnedRecipe.collectAsState()
+    val userPantryIds by pantryViewModel.userPantryIds.collectAsState()
 
     LaunchedEffect(Unit) {
         val userId = auth.currentUser?.uid
@@ -94,7 +97,8 @@ fun HomeScreen(
                 PinnedRecipeCard(
                     recipe = recipe,
                     onUnpin = { PinnedRecipeRepository.unpin(context) },
-                    onRecipeReminder = onRecipeReminder // Przekazujemy dalej do karty
+                    onRecipeReminder = onRecipeReminder, // Przekazujemy dalej do karty
+                    userPantryIds = userPantryIds
                 )
             }
         }
@@ -133,7 +137,8 @@ fun HomeScreen(
 private fun PinnedRecipeCard(
     recipe: Recipe,
     onUnpin: () -> Unit,
-    onRecipeReminder: (String) -> Unit // Odbieramy funkcję przypomnienia
+    onRecipeReminder: (String) -> Unit, // Odbieramy funkcję przypomnienia
+    userPantryIds: Set<String> = emptySet()
 ) {
     val context = LocalContext.current
     var isExpanded by remember { mutableStateOf(false) }
@@ -233,21 +238,22 @@ private fun PinnedRecipeCard(
                     )
 
                     recipe.ingredientIds.forEach { ingredientId ->
+                        val hasIngredient = userPantryIds.contains(ingredientId)
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.padding(vertical = 2.dp)
                         ) {
                             Icon(
-                                imageVector = Icons.Default.RadioButtonUnchecked,
+                                imageVector = if (hasIngredient) Icons.Default.CheckCircle else Icons.Default.RadioButtonUnchecked,
                                 contentDescription = null,
-                                tint = Color.Gray,
+                                tint = if (hasIngredient) Color(0xFF4CAF50) else Color.Gray,
                                 modifier = Modifier.size(16.dp)
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
                                 text = ingredientId.replace("_", " "),
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSecondaryContainer
+                                color = if (hasIngredient) MaterialTheme.colorScheme.onSecondaryContainer else Color.Gray
                             )
                         }
                     }
