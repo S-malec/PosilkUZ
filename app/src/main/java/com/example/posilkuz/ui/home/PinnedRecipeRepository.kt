@@ -1,5 +1,7 @@
 package com.example.posilkuz.data.repository
 
+import android.appwidget.AppWidgetManager
+import android.appwidget.AppWidgetProvider
 import android.content.Context
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -55,6 +57,7 @@ object PinnedRecipeRepository {
                 prefs[INSTRUCTIONS_KEY] = recipe.instructions
                 prefs[INGREDIENTS_KEY] = recipe.ingredientIds.toSet()
             }
+            notifyWidget(context)
         }
     }
 
@@ -64,6 +67,7 @@ object PinnedRecipeRepository {
             context.dataStore.edit { prefs ->
                 prefs.clear()
             }
+            notifyWidget(context)
         }
     }
 
@@ -72,4 +76,18 @@ object PinnedRecipeRepository {
     }
 
     fun isPinned(recipe: Recipe): Boolean = _pinnedRecipe.value?.title == recipe.title
+
+    private fun notifyWidget(context: Context) {
+        val manager = AppWidgetManager.getInstance(context)
+        val ids = manager.getAppWidgetIds(
+            android.content.ComponentName(context, com.example.posilkuz.ui.widget.PinnedRecipeWidget::class.java)
+        )
+        if (ids.isNotEmpty()) {
+            val intent = android.content.Intent(context, com.example.posilkuz.ui.widget.PinnedRecipeWidget::class.java).apply {
+                action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
+                putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids)
+            }
+            context.sendBroadcast(intent)
+        }
+    }
 }
