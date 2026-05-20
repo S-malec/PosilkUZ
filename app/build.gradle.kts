@@ -84,4 +84,5 @@ dependencies {
     implementation("com.google.code.gson:gson:2.10.1")
     implementation("com.google.android.gms:play-services-code-scanner:16.1.0")
     implementation("androidx.datastore:datastore-preferences:1.0.0")
+    implementation("com.google.android.gms:play-services-ads:23.0.0")
 }

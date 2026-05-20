@@ -25,6 +25,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.example.posilkuz.data.model.Recipe
 import com.example.posilkuz.data.repository.PinnedRecipeRepository
+import com.example.posilkuz.ui.ads.BannerAd
+import com.example.posilkuz.ui.ads.LargeBannerAd
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -54,79 +56,111 @@ fun HomeScreen(
         }
     }
 
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .padding(innerPadding)
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 20.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp, vertical = 20.dp)
+                .padding(bottom = 60.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Column {
-                Text(
-                    text = "Cześć, $nickname! 👋",
-                    style = MaterialTheme.typography.headlineMedium
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column {
+                    Text(
+                        text = "Cześć, $nickname! 👋",
+                        style = MaterialTheme.typography.headlineMedium
+                    )
+                    Text(
+                        text = "Co dziś gotujesz?",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                IconButton(onClick = onLogout) {
+                    Icon(Icons.Default.ExitToApp, contentDescription = "Wyloguj")
+                }
+            }
+
+
+            AnimatedVisibility(
+                visible = pinnedRecipe != null,
+                enter = slideInVertically(initialOffsetY = { -it }) + fadeIn(),
+                exit = slideOutVertically(targetOffsetY = { -it }) + fadeOut()
+            ) {
+                pinnedRecipe?.let { recipe ->
+                    PinnedRecipeCard(
+                        recipe = recipe,
+                        onUnpin = { PinnedRecipeRepository.unpin(context) }
+                    )
+                }
+            }
+
+
+            MapsCard(onShowMaps = onShowMaps)
+
+
+            Text(
+                text = "Szybkie akcje",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                QuickActionCard(
+                    modifier = Modifier.weight(1f),
+                    icon = Icons.Default.ShoppingCart,
+                    title = "Spiżarnia",
+                    subtitle = "Zarządzaj składnikami",
+                    onClick = onNavigateToPantry
                 )
-                Text(
-                    text = "Co dziś gotujesz?",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                QuickActionCard(
+                    modifier = Modifier.weight(1f),
+                    icon = Icons.Default.Restaurant,
+                    title = "Przepisy",
+                    subtitle = "Przeglądaj przepisy",
+                    onClick = onNavigateToRecipes
                 )
             }
-            IconButton(onClick = onLogout) {
-                Icon(Icons.Default.ExitToApp, contentDescription = "Wyloguj")
+
+            Text(
+                text = "Reklamy",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                LargeBannerAd(modifier = Modifier.weight(1f))
+                LargeBannerAd(modifier = Modifier.weight(1f))
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                LargeBannerAd(modifier = Modifier.weight(1f))
+                LargeBannerAd(modifier = Modifier.weight(1f))
             }
         }
 
-
-        AnimatedVisibility(
-            visible = pinnedRecipe != null,
-            enter = slideInVertically(initialOffsetY = { -it }) + fadeIn(),
-            exit = slideOutVertically(targetOffsetY = { -it }) + fadeOut()
-        ) {
-            pinnedRecipe?.let { recipe ->
-                PinnedRecipeCard(
-                    recipe = recipe,
-                    onUnpin = { PinnedRecipeRepository.unpin(context) }
-                )
-            }
-        }
-
-
-        MapsCard(onShowMaps = onShowMaps)
-
-
-        Text(
-            text = "Szybkie akcje",
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+        BannerAd(
+            modifier = Modifier.align(Alignment.BottomCenter)
         )
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            QuickActionCard(
-                modifier = Modifier.weight(1f),
-                icon = Icons.Default.ShoppingCart,
-                title = "Spiżarnia",
-                subtitle = "Zarządzaj składnikami",
-                onClick = onNavigateToPantry
-            )
-            QuickActionCard(
-                modifier = Modifier.weight(1f),
-                icon = Icons.Default.Restaurant,
-                title = "Przepisy",
-                subtitle = "Przeglądaj przepisy",
-                onClick = onNavigateToRecipes
-            )
-        }
     }
 }
 
