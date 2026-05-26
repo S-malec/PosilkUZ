@@ -7,21 +7,25 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import com.example.posilkuz.R
 
 @Composable
 fun RegisterScreen(viewModel: AuthViewModel, onNavigateToLogin: () -> Unit) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var nickname by remember { mutableStateOf("") }
+    val context = LocalContext.current
 
     Column(
         modifier = Modifier.fillMaxSize().padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text(text = "Stwórz konto", style = MaterialTheme.typography.headlineMedium)
+        Text(text = stringResource(R.string.create_account), style = MaterialTheme.typography.headlineMedium)
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -32,14 +36,14 @@ fun RegisterScreen(viewModel: AuthViewModel, onNavigateToLogin: () -> Unit) {
         TextField(
             value = password,
             onValueChange = { password = it },
-            label = { Text("Hasło") },
+            label = { Text(text = stringResource(R.string.password)) },
             visualTransformation = PasswordVisualTransformation()
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(onClick = { viewModel.register(email, password, nickname) }) {
-            Text("Zarejestruj się")
+            Text(text = stringResource(R.string.register))
         }
 
         AnimatedVisibility(visible = viewModel.isVerifying) {
@@ -55,13 +59,13 @@ fun RegisterScreen(viewModel: AuthViewModel, onNavigateToLogin: () -> Unit) {
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        text = "Weryfikacja bezpiecznego połączenia...",
+                        text = stringResource(R.string.verifying_connection),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.secondary
                     )
                 }
                 Text(
-                    text = "Ochrona Firebase App Check",
+                    text = stringResource(R.string.firebase_app_check),
                     style = MaterialTheme.typography.labelSmall,
                     color = Color.Gray,
                     modifier = Modifier.padding(top = 4.dp)
@@ -70,12 +74,12 @@ fun RegisterScreen(viewModel: AuthViewModel, onNavigateToLogin: () -> Unit) {
         }
 
         TextButton(onClick = onNavigateToLogin) {
-            Text("Masz już konto? Zaloguj się")
+            Text(text = stringResource(R.string.have_account))
         }
 
         when (val state = viewModel.authState) {
-            is AuthResult.Error -> Text(state.message, color = Color.Red)
-            is AuthResult.Success -> Text("Konto utworzone!", color = Color.Green)
+            is AuthResult.Error -> Text(state.message.asString(context), color = Color.Red)
+            is AuthResult.Success -> Text(text = stringResource(R.string.account_created), color = Color.Green)
             else -> {}
         }
     }

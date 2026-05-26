@@ -1,3 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">PosilkUZ</string>
+
+    <!-- Ekran główny -->
+    <string name="greeting">Cześć</string>
+    <string name="home_question">Co dziś gotujesz?</string>
+    <string name="quick_actions">Szybkie akcje</string>
+    <string name="default_nickname">Użytkowniku</string>
+
+    <!-- Spiżarnia -->
+    <string name="pantry">Spiżarnia</string>
+    <string name="manage_ingredients">Zarządzaj składnikami</string>
+    <string name="your_pantry">Twoja spiżarnia</string>
+    <string name="search_product">Szukaj produktu…</string>
+    <string name="sort">Sortuj</string>
+    <string name="scan">Skanuj</string>
+    <string name="no_results_for">Brak wyników dla:</string>
+    <string name="unit">Jednostka:</string>
+    <string name="unknown_product">Nieznany produkt</string>
+    <string name="product_not_found">Nie znaleźliśmy produktu o kodzie: %1$s. Możesz wysłać propozycję dodania go do bazy.</string>
+    <string name="product_name">Nazwa produktu</string>
+    <string name="clear">Wyczyść</string>
+    <string name="edit_product">Konfiguracja produktu</string>
+
+    <string-array name="product_categories">
+        <item>Warzywa</item>
+        <item>Owoce</item>
+        <item>Nabiał</item>
+        <item>Mięso</item>
+        <item>Napoje</item>
+        <item>Pieczywo</item>
+        <item>Produkty sypkie</item>
+        <item>Inne</item>
+    </string-array>
+
+    <string-array name="product_units">
+        <item>szt</item>
+        <item>kg</item>
+        <item>g</item>
+        <item>l</item>
+        <item>ml</item>
+        <item>opak</item>
+    </string-array>
+
+    <!-- Przepisy -->
+    <string name="recipes">Przepisy</string>
+    <string name="browse_recipes">Przeglądaj przepisy</string>
+    <string name="our_recipes">Nasze przepisy</string>
+    <string name="pinned_recipe">Przypięty przepis</string>
+    <string name="unpin">Odepnij</string>
+    <string name="unpin_from_home">Odepnij z ekranu głównego</string>
+    <string name="pin_to_home">Przypnij na ekran główny</string>
+    <string name="pinned_on_home">📌 Przypięty na ekranie głównym</string>
+    <string name="no_pinned_recipe">Brak przypiętego przepisu</string>
+    <string name="go_pin_recipe">Wejdź w przepisy i przypnij jeden 📌</string>
+    <string name="ingredient_count"> składników</string>
+    <string name="ingredients">Składniki</string>
+    <string name="ingredients_colon">Składniki:</string>
+    <string name="instruction">Instrukcja</string>
+    <string name="instruction_colon">Instrukcja:</string>
+    <string name="unpin_recipe">Odepnij przepis</string>
+
+    <!-- Losowanie przepisu -->
+    <string name="randomize_recipe">Losuj przepis</string>
+    <string name="randomize">Losuj</string>
+    <string name="randomize_again">Losuj ponownie</string>
+    <string name="shake_phone">Potrząśnij telefonem!</string>
+    <string name="back">Wróć</string>
+
+    <!-- Reklamy -->
+    <string name="ads">Reklamy</string>
+
+    <!-- Sklep spożywczy -->
+    <string name="find_grocery">Znajdź sklep spożywczy</string>
+    <string name="open_google_maps">Otwórz Google Maps z najbliższymi sklepami</string>
+    <string name="grocery_stores">Sklepy spożywcze</string>
+
+    <!-- Dodawanie produktu -->
+    <string name="add_product">Dodaj produkt</string>
+    <string name="scan_barcode">Skanuj kod kreskowy</string>
+    <string name="barcode">Kod kreskowy</string>
+    <string name="enter_barcode_manually">Wpisz kod ręcznie</string>
+    <string name="enter_barcode_digits">Wprowadź cyfry kodu</string>
+    <string name="confirm_barcode">Zatwierdź kod</string>
+    <string name="cancel">Anuluj</string>
+    <string name="add_request_sent">Wysłano prośbę o dodanie</string>
+    <string name="product_added_to_pantry">Produkt został dodany do spiżarni!</string>
+    <string name="failed_to_add_product">Błąd: Nie udało się dodać produktu.</string>
+    <string name="product_not_found_error">Błąd: nie udało się znaleźć produktu.</string>
+    <string name="unexpected_error">Wystąpił nieoczekiwany błąd.</string>
+    <string name="send_request">Wyślij prośbę</string>
+
+    <!-- Błędy ogólne -->
+    <string name="error">Błąd</string>
+    <string name="failed">Nie udało się</string>
+    <string name="fill_all_fields">Uzupełnij wszystkie pola</string>
+
+    <!-- Logowanie -->
+    <string name="login_error">Błąd logowania</string>
+    <string name="fetch_user_id_error">Nie udało się pobrać ID użytkownika</string>
+    <string name="email">Email</string>
+    <string name="password">Hasło</string>
+    <string name="login">Zaloguj się</string>
+    <string name="verifying_connection">Weryfikacja bezpiecznego połączenia…</string>
+    <string name="firebase_app_check">Ochrona Firebase App Check</string>
+    <string name="no_account">Nie masz konta? Zarejestruj się</string>
+    <string name="login_success">Zalogowano pomyślnie</string>
+    <string name="logout">Wyloguj</string>
+
+    <!-- Rejestracja -->
+    <string name="register_error">Błąd rejestracji</string>
+    <string name="create_account">Stwórz konto</string>
+    <string name="nickname">Nick</string>
+    <string name="register">Zarejestruj się</string>
+    <string name="have_account">Masz już konto? Zaloguj się</string>
+    <string name="account_created">Konto utworzone!</string>
+
+
+    <!-- Profil i ustawienia -->
+    <string name="profile">Profil</string>
+    <string name="coming_soon">Wkrótce dostępny!</string>
+    <string name="settings">Ustawienia</string>
+    <string name="my_profile">Mój profil</string>
+    <string name="display">Wyświetlanie</string>
+    <string name="theme_system">Systemowy</string>
+    <string name="theme_light">Jasny</string>
+    <string name="theme_dark">Ciemny</string>
+    <string name="moon_icon">Ikona księżyca</string>
+    <string name="language">Język</string>
+    <string name="language_system">Systemowy</string>
+    <string name="language_polish">Polski</string>
+    <string name="language_english">English</string>
+
+    <!-- Zatwierdzanie produktów (admin) -->
+    <string name="approve_products">Zatwierdź produkty</string>
+    <string name="reported_products">Zgłoszone produkty</string>
+    <string name="no_new_reports">Brak nowych zgłoszeń</string>
+    <string name="new_product_added">Dodano nowy produkt:</string>
+    <string name="error_adding">Błąd podczas dodawania</string>
+    <string name="report_rejected">Odrzucono zgłoszenie</string>
+    <string name="code_assigned">Przypisano kod do istniejącego produktu</string>
+    <string name="error_assigning">Błąd podczas przypisywania</string>
+
+    <!-- Admin panel -->
+    <string name="category_label">Kategoria:</string>
+    <string name="unit_label">Jednostka:</string>
+    <string name="document_id_optional">ID Dokumentu (opcjonalnie)</string>
+    <string name="add_to_database">Dodaj do bazy</string>
+    <string name="assign_code_to_product">Przypisz kod do produktu</string>
+    <string name="search_product_dots">Szukaj produktu...</string>
+    <string name="reject">Odrzuć</string>
+    <string name="assign">Przypisz</string>
+    <string name="confirm">Zatwierdź</string>
+
+    <!-- Nawigacja dolna -->
+    <string name="nav_home">Główna</string>
+    <string name="nav_pantry">Spiżarnia</string>
+    <string name="nav_recipes">Przepisy</string>
+    <string name="nav_profile">Profil</string>
 </resources>

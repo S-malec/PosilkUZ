@@ -1,5 +1,6 @@
 package com.example.posilkuz.ui.pantry
 
+import android.provider.Settings.Global.getString
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -21,10 +22,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.posilkuz.R
 import com.example.posilkuz.data.model.Product
 import com.example.posilkuz.ui.components.AppSnackbar
+import com.example.posilkuz.ui.translation.TranslationHelper
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -42,6 +47,7 @@ fun PantryScreen(
     val unrecognizedBarcode by viewModel.unrecognizedBarcode.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     unrecognizedBarcode?.let { barcode ->
         NewProductRequestDialog(
@@ -50,7 +56,7 @@ fun PantryScreen(
             onSubmit = { name, bCode ->
                 viewModel.requestNewProduct(name, bCode)
                 scope.launch {
-                    snackbarHostState.showSnackbar("Wysłano prośbę o dodanie: $name")
+                    snackbarHostState.showSnackbar(TranslationHelper.StringResource(R.string.add_request_sent).asString(context) + name)
                 }
             }
         )
@@ -69,18 +75,18 @@ fun PantryScreen(
 
                         when (result) {
                             PantryViewModel.AddProductResult.SUCCESS -> {
-                                snackbarHostState.showSnackbar("Produkt został dodany do spiżarni!")
+                                snackbarHostState.showSnackbar(TranslationHelper.StringResource(R.string.product_added_to_pantry).asString(context))
                             }
                             PantryViewModel.AddProductResult.NOT_FOUND -> {
                                 // Tutaj nie musisz dawać snackbara, bo ViewModel
                                 // ustawił unrecognizedBarcode i wyskoczy NewProductRequestDialog
                             }
                             PantryViewModel.AddProductResult.ERROR -> {
-                                snackbarHostState.showSnackbar("Błąd: Nie udało się dodać produktu.")
+                                snackbarHostState.showSnackbar(TranslationHelper.StringResource(R.string.failed_to_add_product).asString(context))
                             }
                         }
                     } catch (e: Exception) {
-                        snackbarHostState.showSnackbar("Wystąpił nieoczekiwany błąd.")
+                        snackbarHostState.showSnackbar(TranslationHelper.StringResource(R.string.unexpected_error).asString(context))
                     }
                 }
             }
@@ -99,7 +105,7 @@ fun PantryScreen(
             topBar = {
                 Surface(tonalElevation = 3.dp) {
                     Column {
-                        CenterAlignedTopAppBar(title = { Text("Twoja Spiżarnia") })
+                        CenterAlignedTopAppBar(title = { Text(text = stringResource(R.string.your_pantry)) })
 
                         Row(
                             modifier = Modifier
@@ -111,12 +117,12 @@ fun PantryScreen(
                                 value = searchQuery,
                                 onValueChange = { viewModel.onSearchQueryChange(it) },
                                 modifier = Modifier.weight(1f),
-                                placeholder = { Text("Szukaj produktu...") },
+                                placeholder = { Text(text = stringResource(R.string.search_product)) },
                                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                                 trailingIcon = {
                                     if (searchQuery.isNotEmpty()) {
                                         IconButton(onClick = { viewModel.onSearchQueryChange("") }) {
-                                            Icon(Icons.Default.Close, contentDescription = "Wyczyść")
+                                            Icon(Icons.Default.Close, contentDescription = stringResource(R.string.clear))
                                         }
                                     }
                                 },
@@ -133,7 +139,7 @@ fun PantryScreen(
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.SortByAlpha,
-                                    contentDescription = "Sortuj",
+                                    contentDescription = stringResource(R.string.sort),
                                     modifier = Modifier.graphicsLayer {
                                         rotationX = if (sortOrder == PantryViewModel.SortOrder.DESCENDING) 180f else 0f
                                     }
@@ -147,7 +153,7 @@ fun PantryScreen(
                 ExtendedFloatingActionButton(
                     onClick = { showBarcodeDialog = true },
                     icon = { Icon(Icons.Default.QrCodeScanner, contentDescription = null) },
-                    text = { Text("Skanuj") },
+                    text = { Text(text = stringResource(R.string.scan)) },
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     contentColor = MaterialTheme.colorScheme.onPrimaryContainer
                 )
@@ -178,7 +184,7 @@ fun PantryScreen(
                                     .padding(bottom = 100.dp),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text("Brak wyników dla: \"$searchQuery\"", color = Color.Gray)
+                                Text(text = stringResource(R.string.no_results_for) + searchQuery, color = Color.Gray)
                             }
                         }
                     }
@@ -208,7 +214,6 @@ fun CategorySection(
 ) {
     var isExpanded by remember { mutableStateOf(false) }
     val rotationState by animateFloatAsState(targetValue = if (isExpanded) 180f else 0f, label = "rotation")
-
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -287,7 +292,7 @@ fun ProductRow(
                 color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
             )
             Text(
-                text = "Jednostka: ${product.unit}",
+                text = stringResource(R.string.unit_label) +" "+{product.unit},
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
             )
@@ -312,15 +317,15 @@ fun NewProductRequestDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Nieznany produkt") },
+        title = { Text(stringResource(R.string.unknown_product)) },
         text = {
             Column {
-                Text("Nie znaleźliśmy produktu o kodzie: $barcode. Możesz wysłać propozycję dodania go do bazy.")
+                Text(stringResource(R.string.product_not_found, barcode))
                 Spacer(modifier = Modifier.height(16.dp))
                 OutlinedTextField(
                     value = productName,
                     onValueChange = { productName = it },
-                    label = { Text("Nazwa produktu") },
+                    label = { Text(stringResource(R.string.product_name)) },
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -329,10 +334,10 @@ fun NewProductRequestDialog(
             Button(
                 enabled = productName.isNotBlank(),
                 onClick = { onSubmit(productName, barcode) }
-            ) { Text("Wyślij prośbę") }
+            ) { Text(stringResource(R.string.send_request)) }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Anuluj") }
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
         }
     )
 }

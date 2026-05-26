@@ -22,11 +22,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.example.posilkuz.R
 import com.example.posilkuz.data.model.Recipe
 import com.example.posilkuz.data.repository.PinnedRecipeRepository
 import com.example.posilkuz.ui.ads.BannerAd
 import com.example.posilkuz.ui.ads.LargeBannerAd
+import com.example.posilkuz.ui.translation.TranslationHelper
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -51,7 +54,7 @@ fun HomeScreen(
         if (userId != null) {
             db.collection("users").document(userId).get()
                 .addOnSuccessListener { document ->
-                    nickname = document.getString("nickname") ?: "Użytkowniku"
+                    nickname = document.getString("nickname") ?: TranslationHelper.StringResource(R.string.default_nickname).asString(context)
                 }
         }
     }
@@ -77,17 +80,17 @@ fun HomeScreen(
             ) {
                 Column {
                     Text(
-                        text = "Cześć, $nickname! 👋",
+                        text = stringResource(R.string.greeting) + ", $nickname! 👋",
                         style = MaterialTheme.typography.headlineMedium
                     )
                     Text(
-                        text = "Co dziś gotujesz?",
+                        text = stringResource(R.string.home_question),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
                 IconButton(onClick = onLogout) {
-                    Icon(Icons.Default.ExitToApp, contentDescription = "Wyloguj")
+                    Icon(Icons.Default.ExitToApp, contentDescription = stringResource(R.string.logout))
                 }
             }
 
@@ -110,7 +113,7 @@ fun HomeScreen(
 
 
             Text(
-                text = "Szybkie akcje",
+                text = stringResource(R.string.quick_actions),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -122,21 +125,21 @@ fun HomeScreen(
                 QuickActionCard(
                     modifier = Modifier.weight(1f),
                     icon = Icons.Default.ShoppingCart,
-                    title = "Spiżarnia",
-                    subtitle = "Zarządzaj składnikami",
+                    title = stringResource(R.string.pantry),
+                    subtitle = stringResource(R.string.manage_ingredients),
                     onClick = onNavigateToPantry
                 )
                 QuickActionCard(
                     modifier = Modifier.weight(1f),
                     icon = Icons.Default.Restaurant,
-                    title = "Przepisy",
-                    subtitle = "Przeglądaj przepisy",
+                    title = stringResource(R.string.recipes),
+                    subtitle = stringResource(R.string.browse_recipes),
                     onClick = onNavigateToRecipes
                 )
             }
 
             Text(
-                text = "Reklamy",
+                text = stringResource(R.string.ads),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -198,7 +201,7 @@ private fun PinnedRecipeCard(recipe: Recipe, onUnpin: () -> Unit) {
                         modifier = Modifier.size(18.dp)
                     )
                     Text(
-                        text = "Przypięty przepis",
+                        text = stringResource(R.string.pinned_recipe),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.secondary
                     )
@@ -211,7 +214,7 @@ private fun PinnedRecipeCard(recipe: Recipe, onUnpin: () -> Unit) {
                     ) {
                         Icon(
                             imageVector = Icons.Default.Close,
-                            contentDescription = "Odepnij",
+                            contentDescription = stringResource(R.string.unpin),
                             tint = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.6f),
                             modifier = Modifier.size(16.dp)
                         )
@@ -235,7 +238,7 @@ private fun PinnedRecipeCard(recipe: Recipe, onUnpin: () -> Unit) {
 
             AnimatedVisibility(visible = !isExpanded && recipe.ingredientIds.isNotEmpty()) {
                 Text(
-                    text = "${recipe.ingredientIds.size} składników",
+                    text = "${recipe.ingredientIds.size} ${stringResource(R.string.ingredient_count)}",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f),
                     modifier = Modifier.padding(top = 6.dp)
@@ -245,7 +248,7 @@ private fun PinnedRecipeCard(recipe: Recipe, onUnpin: () -> Unit) {
             AnimatedVisibility(visible = isExpanded) {
                 Column(modifier = Modifier.padding(top = 8.dp)) {
                     Text(
-                        text = "Składniki:",
+                        text = stringResource(R.string.ingredients_colon),
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -276,7 +279,7 @@ private fun PinnedRecipeCard(recipe: Recipe, onUnpin: () -> Unit) {
                     )
 
                     Text(
-                        text = "Instrukcja:",
+                        text = stringResource(R.string.instruction_colon),
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -294,6 +297,7 @@ private fun PinnedRecipeCard(recipe: Recipe, onUnpin: () -> Unit) {
 
 @Composable
 private fun MapsCard(onShowMaps: () -> Unit) {
+    val context = LocalContext.current
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -327,12 +331,12 @@ private fun MapsCard(onShowMaps: () -> Unit) {
             }
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "Znajdź sklep spożywczy",
+                    text = stringResource(R.string.find_grocery),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
                 Text(
-                    text = "Otwórz Google Maps z najbliższymi sklepami",
+                    text = stringResource(R.string.open_google_maps),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
                 )

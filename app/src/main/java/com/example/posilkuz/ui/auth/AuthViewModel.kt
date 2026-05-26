@@ -5,6 +5,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.posilkuz.ui.translation.TranslationHelper
+import com.example.posilkuz.R
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -29,7 +31,7 @@ class AuthViewModel : ViewModel() {
      */
     fun login(email: String, pass: String) {
         if (email.isEmpty() || pass.isEmpty()) {
-            authState = AuthResult.Error("Uzupełnij wszystkie pola")
+            authState = AuthResult.Error(TranslationHelper.StringResource(R.string.fill_all_fields))
             return
         }
 
@@ -44,7 +46,12 @@ class AuthViewModel : ViewModel() {
 
                 authState = AuthResult.Success
             } catch (e: Exception) {
-                authState = AuthResult.Error(e.localizedMessage ?: "Błąd logowania")
+                authState = AuthResult.Error(
+                    (if (e.localizedMessage != null)
+                        TranslationHelper.DynamicString(e.localizedMessage)
+                    else
+                        TranslationHelper.StringResource(R.string.fill_all_fields)) as TranslationHelper.StringResource
+                )
             } finally {
                 isVerifying = false
             }
@@ -56,7 +63,7 @@ class AuthViewModel : ViewModel() {
      */
     fun register(email: String, pass: String, nickname: String) {
         if (nickname.isEmpty() || email.isEmpty() || pass.isEmpty()) {
-            authState = AuthResult.Error("Uzupełnij wszystkie pola")
+            authState = AuthResult.Error(TranslationHelper.StringResource(R.string.fill_all_fields))
             return
         }
 
@@ -69,7 +76,7 @@ class AuthViewModel : ViewModel() {
 
                 // 1. Tworzenie konta w Firebase Auth
                 val authResult = auth.createUserWithEmailAndPassword(email, pass).await()
-                val userId = authResult.user?.uid ?: throw Exception("Nie udało się pobrać ID użytkownika")
+                val userId = authResult.user?.uid ?: throw Exception("uid_null")
 
                 // 2. Przygotowanie danych (Wszystko w jednej mapie, by uniknąć nadpisywania)
                 val userMap = hashMapOf(
@@ -85,7 +92,14 @@ class AuthViewModel : ViewModel() {
                 authState = AuthResult.Success
             } catch (e: Exception) {
                 // Jeśli np. Auth się uda, ale Firestore padnie, warto tu obsłużyć wycofanie zmian
-                authState = AuthResult.Error(e.localizedMessage ?: "Błąd rejestracji")
+                authState = AuthResult.Error(
+                    when (e.message) {
+                        "uid_null" -> TranslationHelper.StringResource(R.string.fetch_user_id_error)
+                        else -> TranslationHelper.DynamicString(e.localizedMessage ?: "")
+                            .takeIf { e.localizedMessage != null }
+                            ?: TranslationHelper.StringResource(R.string.register_error)
+                    } as TranslationHelper.StringResource
+                )
             } finally {
                 isVerifying = false
             }
