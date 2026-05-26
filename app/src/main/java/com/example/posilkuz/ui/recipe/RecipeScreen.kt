@@ -21,8 +21,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.posilkuz.R
 import com.example.posilkuz.data.model.Recipe
 import com.example.posilkuz.data.repository.PinnedRecipeRepository
 
@@ -36,16 +38,15 @@ fun RecipesScreen(
     val recipes by viewModel.recipes.collectAsState()
     val pantryIds by viewModel.userPantryIds.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
-
     Scaffold(
         topBar = {
-            CenterAlignedTopAppBar(title = { Text("Nasze przepisy") })
+            CenterAlignedTopAppBar(title = { Text(text = stringResource(R.string.our_recipes)) })
         },
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = onRandomClick,
                 icon = { Icon(Icons.Default.Receipt, contentDescription = null) },
-                text = { Text("Losuj") },
+                text = { Text(text = stringResource(R.string.our_recipes)) },
                 containerColor = MaterialTheme.colorScheme.primaryContainer,
                 contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                 modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding())
@@ -126,7 +127,7 @@ fun RecipeCard(
                 ) {
                     Icon(
                         imageVector = if (isPinned) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
-                        contentDescription = if (isPinned) "Odepnij przepis" else "Przypnij na ekran główny",
+                        contentDescription = if (isPinned) stringResource(R.string.unpin_recipe) else stringResource(R.string.pin_to_home),
                         tint = if (isPinned)
                             MaterialTheme.colorScheme.secondary
                         else
@@ -143,7 +144,7 @@ fun RecipeCard(
 
             if (isPinned) {
                 Text(
-                    text = "📌 Przypięty na ekranie głównym",
+                    text = stringResource(R.string.pinned_on_home),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.secondary,
                     modifier = Modifier.padding(bottom = 8.dp)
@@ -153,7 +154,7 @@ fun RecipeCard(
             AnimatedVisibility(visible = isExpanded) {
                 Column(modifier = Modifier.padding(top = 8.dp)) {
                     Text(
-                        text = "Składniki:",
+                        text = stringResource(R.string.ingredients_colon),
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -182,7 +183,7 @@ fun RecipeCard(
                     HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
 
                     Text(
-                        text = "Instrukcja:",
+                        text = stringResource(R.string.instruction_colon),
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.primary
                     )

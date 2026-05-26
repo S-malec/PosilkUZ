@@ -1,6 +1,9 @@
 package com.example.posilkuz
 
+import android.R.attr.icon
+import android.content.Context
 import android.os.Bundle
+import android.provider.Settings.Global.getString
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -30,6 +33,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -43,6 +47,7 @@ import com.example.posilkuz.ui.profile.ProfileScreen
 import com.example.posilkuz.ui.recipe.RecipesScreen
 import com.example.posilkuz.ui.theme.PosilkUZTheme
 import com.example.posilkuz.ui.theme.ThemeMode
+import com.example.posilkuz.ui.translation.LanguageHelper
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
@@ -51,17 +56,27 @@ data class TabItem(
     val icon: ImageVector
 )
 
-// 4 zakładki — Sklepy dostępne jako kafelek na HomeScreen
-val mainTabs = listOf(
-    TabItem("Główna", Icons.Default.Home),
-    TabItem("Spiżarnia", Icons.Default.ShoppingCart),
-    TabItem("Przepisy", Icons.Default.Restaurant),
-    TabItem("Profil", Icons.Default.Person)
-)
+
 
 class MainActivity : ComponentActivity() {
+
+    override fun attachBaseContext(newBase: Context) {
+        val lang = LanguageHelper.getSavedLanguage(newBase)
+        val context = LanguageHelper.setLocale(newBase, lang)
+        super.attachBaseContext(context)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+
+        // 4 zakładki — Sklepy dostępne jako kafelek na HomeScreen
+        val mainTabs = listOf(
+            TabItem(getString(R.string.nav_home), Icons.Default.Home),
+            TabItem(getString(R.string.nav_pantry), Icons.Default.ShoppingCart),
+            TabItem(getString(R.string.nav_recipes), Icons.Default.Restaurant),
+            TabItem(getString(R.string.nav_profile), Icons.Default.Person)
+        )
 
         PinnedRecipeRepository.initialize(this)
 
@@ -93,6 +108,7 @@ class MainActivity : ComponentActivity() {
 
                         composable("main") {
                             MainPagerScreen(
+                                mainTabs = mainTabs,
                                 currentTheme = currentTheme,
                                 onThemeChange = { currentTheme = it },
                                 onLogout = {
@@ -120,14 +136,23 @@ class MainActivity : ComponentActivity() {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MainPagerScreen(
+    mainTabs: List<TabItem>,
     currentTheme: ThemeMode,
     onThemeChange: (ThemeMode) -> Unit,
     onLogout: () -> Unit,
     onShowMaps: () -> Unit,
     onNavigateToRandom: () -> Unit
 ) {
+
     val pagerState = rememberPagerState(pageCount = { mainTabs.size })
     val coroutineScope = rememberCoroutineScope()
+
+    val tabLabels = listOf(
+        stringResource(R.string.nav_home),
+        stringResource(R.string.nav_pantry),
+        stringResource(R.string.nav_recipes),
+        stringResource(R.string.nav_profile)
+    )
 
     Scaffold(
         bottomBar = {

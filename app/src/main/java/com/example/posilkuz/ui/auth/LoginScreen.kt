@@ -7,13 +7,17 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import com.example.posilkuz.R
 
 @Composable
 fun LoginScreen(viewModel: AuthViewModel, onNavigateToRegister: () -> Unit) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    val context = LocalContext.current
 
     Column(
         modifier = Modifier.fillMaxSize().padding(16.dp),
@@ -47,13 +51,13 @@ fun LoginScreen(viewModel: AuthViewModel, onNavigateToRegister: () -> Unit) {
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        text = "Weryfikacja bezpiecznego połączenia...",
+                        text = stringResource(R.string.verifying_connection),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.secondary
                     )
                 }
                 Text(
-                    text = "Ochrona Firebase App Check",
+                    text = stringResource(R.string.firebase_app_check),
                     style = MaterialTheme.typography.labelSmall,
                     color = Color.Gray,
                     modifier = Modifier.padding(top = 4.dp)
@@ -62,12 +66,12 @@ fun LoginScreen(viewModel: AuthViewModel, onNavigateToRegister: () -> Unit) {
         }
 
         TextButton(onClick = onNavigateToRegister) {
-            Text("Nie masz konta? Zarejestruj się")
+            Text(text = stringResource(R.string.no_account))
         }
 
         when (val state = viewModel.authState) {
-            is AuthResult.Error -> Text(state.message, color = Color.Red)
-            is AuthResult.Success -> Text("Zalogowano pomyślnie!", color = Color.Green)
+            is AuthResult.Error -> Text(state.message.asString(context), color = Color.Red)
+            is AuthResult.Success -> Text(text = stringResource(R.string.login_success), color = Color.Green)
             else -> {}
         }
     }

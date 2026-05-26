@@ -24,7 +24,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.example.posilkuz.R
 import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
 
 @Composable
@@ -40,7 +42,7 @@ fun BarcodeScannerDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Dodaj produkt") },
+        title = { Text(text = stringResource(R.string.add_product)) },
         text = {
             Column {
                 // PRZYCISK 1: SKANOWANIE
@@ -58,7 +60,7 @@ fun BarcodeScannerDialog(
                 ) {
                     Icon(Icons.Default.QrCodeScanner, contentDescription = null)
                     Spacer(Modifier.height(8.dp))
-                    Text("Skanuj kod kreskowy")
+                    Text(text = stringResource(R.string.scan_barcode))
                 }
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -71,7 +73,7 @@ fun BarcodeScannerDialog(
                     ) {
                         Icon(Icons.Default.Edit, contentDescription = null)
                         Spacer(Modifier.height(8.dp))
-                        Text("Wpisz kod ręcznie")
+                        Text(text = stringResource(R.string.enter_barcode_manually))
                     }
                 }
 
@@ -82,7 +84,7 @@ fun BarcodeScannerDialog(
                         OutlinedTextField(
                             value = manualBarcode,
                             onValueChange = { manualBarcode = it },
-                            label = { Text("Wprowadź cyfry kodu") },
+                            label = { Text(text = stringResource(R.string.enter_barcode_digits)) },
                             modifier = Modifier.fillMaxWidth(),
                             singleLine = true
                         )
@@ -100,7 +102,7 @@ fun BarcodeScannerDialog(
                                 containerColor = MaterialTheme.colorScheme.secondary
                             )
                         ) {
-                            Text("Zatwierdź kod")
+                            Text(text = stringResource(R.string.confirm_barcode))
                         }
                     }
                 }
@@ -111,7 +113,7 @@ fun BarcodeScannerDialog(
             // bo główne akcje są wewnątrz 'text' jako duże przyciski
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Anuluj") }
+            TextButton(onClick = onDismiss) { Text(text = stringResource(R.string.cancel)) }
         }
     )
 }

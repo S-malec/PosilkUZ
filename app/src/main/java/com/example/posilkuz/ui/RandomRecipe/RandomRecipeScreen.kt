@@ -39,10 +39,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.posilkuz.R
 import com.example.posilkuz.data.repository.PinnedRecipeRepository
 import com.example.posilkuz.ui.recipe.RecipeCard
 import kotlinx.coroutines.delay
@@ -126,10 +128,10 @@ fun RandomRecipeScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Losuj przepis") },
+                title = { Text(text = stringResource(R.string.randomize_recipe)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Wróć")
+                        Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 }
             )
@@ -173,20 +175,20 @@ fun RandomRecipeScreen(
                                 modifier = Modifier.size(18.dp)
                             )
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text(if (isPinned) "Odepnij z ekranu głównego" else "Przypnij na ekran główny")
+                            Text(if (isPinned) stringResource(R.string.unpin_from_home) else stringResource(R.string.pin_to_home))
                         }
                         
                         Button(
                             onClick = { viewModel.dismissRecipe() },
                             modifier = Modifier.padding(top = 8.dp)
                         ) {
-                            Text("Losuj ponownie")
+                            Text(text = stringResource(R.string.randomize_again))
                         }
                     }
                 }
                 else -> Box(Modifier.fillMaxSize()) {
                     Text(
-                        text = "Potrząśnij telefonem!",
+                        text = stringResource(R.string.shake_phone),
                         style = MaterialTheme.typography.headlineMedium,
                         modifier = Modifier.align(Alignment.Center)
                     )

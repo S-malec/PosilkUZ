@@ -10,13 +10,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-
+import com.example.posilkuz.ui.translation.TranslationHelper
+import com.example.posilkuz.R
 @Composable
 fun AppSnackbar(data: SnackbarData) {
+    val context = LocalContext.current
     // Sprawdzamy czy w treści jest słowo "błąd" lub "nieznany", by zmienić kolor na czerwony
-    val isError = data.visuals.message.contains("Błąd", ignoreCase = true) ||
-            data.visuals.message.contains("Nie udało się", ignoreCase = true)
+    val isError = data.visuals.message.contains(TranslationHelper.StringResource(R.string.error).asString(context), ignoreCase = true) ||
+            data.visuals.message.contains(TranslationHelper.StringResource(R.string.failed).asString(context), ignoreCase = true)
 
     val containerColor = if (isError) Color(0xFFFFEBEE) else Color(0xFFE8F5E9)
     val contentColor = if (isError) Color(0xFFC62828) else Color(0xFF2E7D32)

@@ -1,5 +1,6 @@
 package com.example.posilkuz.ui.profile
 
+import android.app.Activity
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -19,9 +20,15 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringArrayResource
+import androidx.compose.ui.res.stringResource
+import com.example.posilkuz.R
 import com.example.posilkuz.data.model.Product
 import com.example.posilkuz.data.repository.ProductRepository
 import com.example.posilkuz.ui.components.AppSnackbar
+import com.example.posilkuz.ui.translation.LanguageHelper
+import com.example.posilkuz.ui.translation.TranslationHelper
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
 
@@ -29,6 +36,7 @@ enum class ProfileSubScreen {
     MAIN,
     SETTINGS,
     DISPLAY,
+    LANGUAGE,
     ADMIN_PANEL
 }
 
@@ -39,11 +47,11 @@ fun ProfileScreen(
     innerPadding: PaddingValues = PaddingValues()
 ) {
     var currentSubScreen by remember { mutableStateOf(ProfileSubScreen.MAIN) }
-
     // Obsługa przycisku wstecz
     BackHandler(enabled = currentSubScreen != ProfileSubScreen.MAIN) {
         currentSubScreen = when (currentSubScreen) {
             ProfileSubScreen.DISPLAY -> ProfileSubScreen.SETTINGS
+            ProfileSubScreen.LANGUAGE -> ProfileSubScreen.SETTINGS
             ProfileSubScreen.ADMIN_PANEL -> ProfileSubScreen.MAIN
             ProfileSubScreen.SETTINGS -> ProfileSubScreen.MAIN
             else -> ProfileSubScreen.MAIN
@@ -66,11 +74,15 @@ fun ProfileScreen(
             )
             ProfileSubScreen.SETTINGS -> SettingsView(
                 onBack = { currentSubScreen = ProfileSubScreen.MAIN },
-                onNavigateToDisplay = { currentSubScreen = ProfileSubScreen.DISPLAY }
+                onNavigateToDisplay = { currentSubScreen = ProfileSubScreen.DISPLAY },
+                onNavigateToLanguage = { currentSubScreen = ProfileSubScreen.LANGUAGE }
             )
             ProfileSubScreen.DISPLAY -> DisplaySettingsView(
                 currentTheme = currentTheme,
                 onThemeChange = onThemeChange,
+                onBack = { currentSubScreen = ProfileSubScreen.SETTINGS }
+            )
+            ProfileSubScreen.LANGUAGE -> LanguageSettingsView( // add this
                 onBack = { currentSubScreen = ProfileSubScreen.SETTINGS }
             )
         }
@@ -79,10 +91,11 @@ fun ProfileScreen(
 
 @Composable
 fun ProfileMainView(onNavigateToSettings: () -> Unit, onNavigateToAdmin: () -> Unit) {
-    Text("Mój Profil", style = MaterialTheme.typography.headlineMedium, modifier = Modifier.padding(bottom = 24.dp))
+    Text(text = stringResource(R.string.my_profile),
+        style = MaterialTheme.typography.headlineMedium, modifier = Modifier.padding(bottom = 24.dp))
 
     ListItem(
-        headlineContent = { Text("Ustawienia") },
+        headlineContent = { Text(text = stringResource(R.string.settings)) },
         leadingContent = { Icon(Icons.Default.Settings, contentDescription = null) },
         trailingContent = { Icon(Icons.Default.KeyboardArrowRight, contentDescription = null) },
         modifier = Modifier.clickable { onNavigateToSettings() }
@@ -90,7 +103,7 @@ fun ProfileMainView(onNavigateToSettings: () -> Unit, onNavigateToAdmin: () -> U
 
     // Przycisk widoczny dla administratora
     ListItem(
-        headlineContent = { Text("Zatwierdź produkty") },
+        headlineContent = { Text(text = stringResource(R.string.approve_products)) },
         leadingContent = { Icon(Icons.Default.FactCheck, contentDescription = null) },
         trailingContent = { Icon(Icons.Default.KeyboardArrowRight, contentDescription = null) },
         modifier = Modifier.clickable { onNavigateToAdmin() }
@@ -98,16 +111,28 @@ fun ProfileMainView(onNavigateToSettings: () -> Unit, onNavigateToAdmin: () -> U
 }
 
 @Composable
-fun SettingsView(onBack: () -> Unit, onNavigateToDisplay: () -> Unit) {
+fun SettingsView(
+    onBack: () -> Unit,
+    onNavigateToDisplay: () -> Unit,
+    onNavigateToLanguage: () -> Unit // add this
+) {
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 16.dp)) {
-        IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, contentDescription = "Wstecz") }
-        Text("Ustawienia", style = MaterialTheme.typography.headlineSmall)
+        IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.back)) }
+        Text(stringResource(R.string.settings), style = MaterialTheme.typography.headlineSmall)
     }
+
     ListItem(
-        headlineContent = { Text("Wyświetlanie") },
-        leadingContent = { Icon(Icons.Default.DarkMode, contentDescription = "Ikona księżyca") },
+        headlineContent = { Text(stringResource(R.string.display)) },
+        leadingContent = { Icon(Icons.Default.DarkMode, contentDescription = null) },
         trailingContent = { Icon(Icons.Default.KeyboardArrowRight, contentDescription = null) },
         modifier = Modifier.clickable { onNavigateToDisplay() }
+    )
+
+    ListItem(
+        headlineContent = { Text(stringResource(R.string.language)) },
+        leadingContent = { Icon(Icons.Default.Language, contentDescription = null) },
+        trailingContent = { Icon(Icons.Default.KeyboardArrowRight, contentDescription = null) },
+        modifier = Modifier.clickable { onNavigateToLanguage() }
     )
 }
 
@@ -118,14 +143,57 @@ fun DisplaySettingsView(
     onBack: () -> Unit
 ) {
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 16.dp)) {
-        IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, contentDescription = "Wstecz") }
-        Text("Wyświetlanie", style = MaterialTheme.typography.headlineSmall)
+        IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.back)) }
+        Text(text = stringResource(R.string.display), style = MaterialTheme.typography.headlineSmall)
     }
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(8.dp)) {
-            ThemeOptionRow("Systemowy", currentTheme == ThemeMode.SYSTEM) { onThemeChange(ThemeMode.SYSTEM) }
-            ThemeOptionRow("Jasny", currentTheme == ThemeMode.LIGHT) { onThemeChange(ThemeMode.LIGHT) }
-            ThemeOptionRow("Ciemny", currentTheme == ThemeMode.DARK) { onThemeChange(ThemeMode.DARK) }
+            ThemeOptionRow(stringResource(R.string.theme_system), currentTheme == ThemeMode.SYSTEM) { onThemeChange(ThemeMode.SYSTEM) }
+            ThemeOptionRow(stringResource(R.string.theme_light), currentTheme == ThemeMode.LIGHT) { onThemeChange(ThemeMode.LIGHT) }
+            ThemeOptionRow(stringResource(R.string.theme_dark), currentTheme == ThemeMode.DARK) { onThemeChange(ThemeMode.DARK) }
+        }
+    }
+}
+
+@Composable
+fun LanguageSettingsView(onBack: () -> Unit) {
+    val context = LocalContext.current
+    val activity = context as? Activity
+
+    val languages = listOf(
+        "system" to stringResource(R.string.language_system),
+        "pl" to stringResource(R.string.language_polish),
+        "en" to stringResource(R.string.language_english)
+    )
+
+    var selectedLang by remember {
+        mutableStateOf(LanguageHelper.getSavedLanguage(context))
+    }
+
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 16.dp)) {
+        IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.back)) }
+        Text(stringResource(R.string.language), style = MaterialTheme.typography.headlineSmall)
+    }
+
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(8.dp)) {
+            languages.forEach { (tag, label) ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            selectedLang = tag
+                            LanguageHelper.saveLanguage(context, tag)
+                            activity?.recreate()
+                        }
+                        .padding(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    RadioButton(selected = selectedLang == tag, onClick = null)
+                    Spacer(Modifier.width(12.dp))
+                    Text(label)
+                }
+            }
         }
     }
 }
@@ -157,6 +225,7 @@ fun AdminRequestsView(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val db = FirebaseFirestore.getInstance()
+    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
         allProducts = repository.getAllProducts()
@@ -186,8 +255,8 @@ fun AdminRequestsView(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(16.dp).fillMaxWidth()
             ) {
-                IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, "Wstecz") }
-                Text("Zgłoszone produkty", style = MaterialTheme.typography.headlineSmall)
+                IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, stringResource(R.string.back)) }
+                Text(text = stringResource(R.string.reported_products), style = MaterialTheme.typography.headlineSmall)
             }
         }
     ) { paddingValues ->
@@ -199,7 +268,7 @@ fun AdminRequestsView(
                 }
             } else if (requests.isEmpty()) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Brak nowych zgłoszeń", color = Color.Gray)
+                    Text(text = stringResource(R.string.no_new_reports), color = Color.Gray)
                 }
             } else {
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -212,16 +281,16 @@ fun AdminRequestsView(
                                     try {
                                         repository.approveProductRequest(requestId, finalProduct)
                                         // 3. Wyświetlenie powiadomienia po sukcesie
-                                        snackbarHostState.showSnackbar("Dodano nowy produkt: ${finalProduct.name}")
+                                        snackbarHostState.showSnackbar(TranslationHelper.StringResource(R.string.new_product_added).asString(context) + finalProduct.name)
                                     } catch (e: Exception) {
-                                        snackbarHostState.showSnackbar("Błąd podczas dodawania")
+                                        snackbarHostState.showSnackbar(TranslationHelper.StringResource(R.string.error_adding).asString(context))
                                     }
                                 }
                             },
                             onReject = { requestId ->
                                 scope.launch {
                                     repository.rejectProductRequest(requestId)
-                                    snackbarHostState.showSnackbar("Odrzucono zgłoszenie")
+                                    snackbarHostState.showSnackbar(TranslationHelper.StringResource(R.string.report_rejected).asString(context))
                                 }
                             },
                             onAssignToExisting = { requestId, productId, barcode ->
@@ -230,9 +299,9 @@ fun AdminRequestsView(
                                         repository.addBarcodeToExistingProduct(productId, barcode)
                                         repository.rejectProductRequest(requestId)
                                         // 4. Wyświetlenie powiadomienia po przypisaniu
-                                        snackbarHostState.showSnackbar("Przypisano kod do istniejącego produktu")
+                                        snackbarHostState.showSnackbar(TranslationHelper.StringResource(R.string.code_assigned).asString(context))
                                     } catch (e: Exception) {
-                                        snackbarHostState.showSnackbar("Błąd podczas przypisywania")
+                                        snackbarHostState.showSnackbar(TranslationHelper.StringResource(R.string.error_assigning).asString(context))
                                     }
                                 }
                             }
@@ -261,17 +330,18 @@ fun AdminRequestCard(
     var editedBarcode by remember { mutableStateOf(request.barcode) }
     var editedName by remember { mutableStateOf(request.name) }
     var editedId by remember { mutableStateOf("") }
-    var selectedCategory by remember { mutableStateOf("Inne") }
-    var selectedUnit by remember { mutableStateOf("szt") }
 
-    val categories = listOf("Warzywa", "Owoce", "Nabiał", "Mięso", "Napoje", "Pieczywo", "Produkty sypkie", "Inne")
-    val units = listOf("szt", "kg", "g", "l", "ml", "opak")
+    val categories = stringArrayResource(R.array.product_categories).toList()
+    val units = stringArrayResource(R.array.product_units).toList()
+
+    var selectedCategory by remember { mutableStateOf(categories.last()) }
+    var selectedUnit by remember { mutableStateOf(units.first()) }
 
     // --- DIALOG: TWORZENIE NOWEGO PRODUKTU ---
     if (showEditDialog) {
         AlertDialog(
             onDismissRequest = { showEditDialog = false },
-            title = { Text("Konfiguracja produktu") },
+            title = { Text(text = stringResource(R.string.edit_product)) },
             text = {
                 Column(
                     modifier = Modifier.verticalScroll(rememberScrollState()),
@@ -280,23 +350,23 @@ fun AdminRequestCard(
                     OutlinedTextField(
                         value = editedBarcode,
                         onValueChange = { editedBarcode = it },
-                        label = { Text("Barcode") },
+                        label = { Text(text = stringResource(R.string.barcode)) },
                         modifier = Modifier.fillMaxWidth()
                     )
                     OutlinedTextField(
                         value = editedName,
                         onValueChange = { editedName = it },
-                        label = { Text("Nazwa produktu") },
+                        label = { Text(text = stringResource(R.string.product_name)) },
                         modifier = Modifier.fillMaxWidth()
                     )
                     OutlinedTextField(
                         value = editedId,
                         onValueChange = { editedId = it },
-                        label = { Text("ID Dokumentu (opcjonalnie)") },
+                        label = { Text(text = stringResource(R.string.document_id_optional)) },
                         modifier = Modifier.fillMaxWidth()
                     )
 
-                    Text("Kategoria:", style = MaterialTheme.typography.labelSmall)
+                    Text(text = stringResource(R.string.category_label), style = MaterialTheme.typography.labelSmall)
                     Row(Modifier.horizontalScroll(rememberScrollState())) {
                         categories.forEach { cat ->
                             FilterChip(
@@ -308,7 +378,7 @@ fun AdminRequestCard(
                         }
                     }
 
-                    Text("Jednostka:", style = MaterialTheme.typography.labelSmall)
+                    Text(text = stringResource(R.string.unit_label), style = MaterialTheme.typography.labelSmall)
                     Row(Modifier.horizontalScroll(rememberScrollState())) {
                         units.forEach { u ->
                             FilterChip(
@@ -332,10 +402,10 @@ fun AdminRequestCard(
                     )
                     onApprove(request.id, finalProduct)
                     showEditDialog = false
-                }) { Text("Dodaj do bazy") }
+                }) { Text(text = stringResource(R.string.add_to_database)) }
             },
             dismissButton = {
-                TextButton(onClick = { showEditDialog = false }) { Text("Anuluj") }
+                TextButton(onClick = { showEditDialog = false }) { Text(text = stringResource(R.string.cancel)) }
             }
         )
     }
@@ -344,13 +414,13 @@ fun AdminRequestCard(
     if (showAssignDialog) {
         AlertDialog(
             onDismissRequest = { showAssignDialog = false },
-            title = { Text("Przypisz kod do produktu") },
+            title = { Text(text = stringResource(R.string.assign_code_to_product)) },
             text = {
                 Column(modifier = Modifier.heightIn(max = 400.dp)) {
                     OutlinedTextField(
                         value = searchQuery,
                         onValueChange = { searchQuery = it },
-                        label = { Text("Szukaj produktu...") },
+                        label = { Text(text = stringResource(R.string.search_product_dots)) },
                         modifier = Modifier.fillMaxWidth(),
                         leadingIcon = { Icon(Icons.Default.Search, null) }
                     )
@@ -374,7 +444,7 @@ fun AdminRequestCard(
             },
             confirmButton = {},
             dismissButton = {
-                TextButton(onClick = { showAssignDialog = false }) { Text("Anuluj") }
+                TextButton(onClick = { showAssignDialog = false }) { Text(text = stringResource(R.string.cancel)) }
             }
         )
     }
@@ -395,17 +465,17 @@ fun AdminRequestCard(
 
             // Przycisk: ODRZUĆ (X)
             IconButton(onClick = { onReject(request.id) }) {
-                Icon(Icons.Default.Close, contentDescription = "Odrzuć", tint = Color.Red)
+                Icon(Icons.Default.Close, contentDescription = stringResource(R.string.reject), tint = Color.Red)
             }
 
             // Przycisk: PRZYPISZ (Link)
             IconButton(onClick = { showAssignDialog = true }) {
-                Icon(Icons.Default.Link, contentDescription = "Przypisz", tint = MaterialTheme.colorScheme.primary)
+                Icon(Icons.Default.Link, contentDescription = stringResource(R.string.assign), tint = MaterialTheme.colorScheme.primary)
             }
 
             // Przycisk: NOWY (Zatwierdź)
             Button(onClick = { showEditDialog = true }) {
-                Text("Zatwierdź")
+                Text(text = stringResource(R.string.confirm))
             }
         }
     }
