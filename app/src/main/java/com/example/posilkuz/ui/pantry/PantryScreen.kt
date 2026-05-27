@@ -1,6 +1,5 @@
 package com.example.posilkuz.ui.pantry
 
-import android.provider.Settings.Global.getString
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -28,17 +27,19 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.posilkuz.R
 import com.example.posilkuz.data.model.Product
+import com.example.posilkuz.data.normalizePolish
 import com.example.posilkuz.ui.components.AppSnackbar
 import com.example.posilkuz.ui.translation.TranslationHelper
+import com.example.posilkuz.ui.translation.getDynamicString
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PantryScreen(
     viewModel: PantryViewModel = viewModel(),
-    innerPadding: PaddingValues = PaddingValues() // Padding z zewnętrznego Scaffolda (np. z BottomBar)
+    innerPadding: PaddingValues = PaddingValues()
 ) {
-    val groupedProducts by viewModel.groupedProducts.collectAsState(initial = emptyMap())
+    val products by viewModel.allProducts.collectAsState()
     val pantryIds by viewModel.userPantryIds.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
@@ -48,6 +49,23 @@ fun PantryScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+
+    // Nowe dynamiczne grupowanie, tłumaczenie i sortowanie z uwzględnieniem strings.xml
+    val groupedProducts = remember(products, searchQuery, sortOrder) {
+        val normalizedQuery = searchQuery.normalizePolish()
+
+        val filtered = products.filter { product ->
+            val localizedName = context.getDynamicString("prod", product.id, product.name)
+            localizedName.normalizePolish().contains(normalizedQuery, ignoreCase = true)
+        }
+
+        val sorted = when (sortOrder) {
+            PantryViewModel.SortOrder.ASCENDING -> filtered.sortedBy { context.getDynamicString("prod", it.id, it.name).normalizePolish() }
+            PantryViewModel.SortOrder.DESCENDING -> filtered.sortedByDescending { context.getDynamicString("prod", it.id, it.name).normalizePolish() }
+        }
+
+        sorted.groupBy { context.getDynamicString("cat", it.category, it.category) }
+    }
 
     unrecognizedBarcode?.let { barcode ->
         NewProductRequestDialog(
@@ -70,7 +88,6 @@ fun PantryScreen(
 
                 scope.launch {
                     try {
-                        // Wywołujemy funkcję suspend i czekamy na wynik
                         val result = viewModel.addProductByBarcode(barcode)
 
                         when (result) {
@@ -78,12 +95,12 @@ fun PantryScreen(
                                 snackbarHostState.showSnackbar(TranslationHelper.StringResource(R.string.product_added_to_pantry).asString(context))
                             }
                             PantryViewModel.AddProductResult.NOT_FOUND -> {
-                                // Tutaj nie musisz dawać snackbara, bo ViewModel
-                                // ustawił unrecognizedBarcode i wyskoczy NewProductRequestDialog
+                                // Formularz otworzy się automatycznie przez LiveData/Flow
                             }
                             PantryViewModel.AddProductResult.ERROR -> {
                                 snackbarHostState.showSnackbar(TranslationHelper.StringResource(R.string.failed_to_add_product).asString(context))
                             }
+                            else -> {} // Ta linijka naprawia błąd "must be exhaustive"
                         }
                     } catch (e: Exception) {
                         snackbarHostState.showSnackbar(TranslationHelper.StringResource(R.string.unexpected_error).asString(context))
@@ -93,13 +110,11 @@ fun PantryScreen(
         )
     }
 
-    // Używamy Box, aby zaaplikować padding zewnętrzny (miejsce na dolne menu)
-    // Dzięki temu FAB wewnątrz Scaffolda "podskoczy" nad pasek nawigacji.
     Box(modifier = Modifier.padding(innerPadding)) {
         Scaffold(
             snackbarHost = {
                 SnackbarHost(hostState = snackbarHostState) { data ->
-                    AppSnackbar(data) // Używamy naszego komponentu z pliku
+                    AppSnackbar(data)
                 }
             },
             topBar = {
@@ -287,12 +302,12 @@ fun ProductRow(
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = product.name,
+                text = LocalContext.current.getDynamicString("prod", product.id, product.name),
                 style = MaterialTheme.typography.bodyLarge,
                 color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
             )
             Text(
-                text = stringResource(R.string.unit_label) +" "+{product.unit},
+                text = stringResource(R.string.unit_label) + " " + product.unit,
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
             )

@@ -3,7 +3,6 @@ package com.example.posilkuz.ui.pantry
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.posilkuz.data.model.Product
-import com.example.posilkuz.data.normalizePolish
 import com.example.posilkuz.data.repository.ProductRepository
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -33,27 +32,8 @@ class PantryViewModel(
 
     enum class SortOrder { ASCENDING, DESCENDING }
 
-    // W PantryViewModel.kt
     private val _sortOrder = MutableStateFlow(SortOrder.ASCENDING)
     val sortOrder = _sortOrder.asStateFlow()
-    val groupedProducts = combine(allProducts, _searchQuery, _sortOrder) { products, query, order ->
-        val normalizedQuery = query.normalizePolish()
-
-        val filtered = products.filter {
-            it.name.normalizePolish().contains(normalizedQuery)
-        }
-
-        val sorted = when (order) {
-            SortOrder.ASCENDING -> filtered.sortedBy { it.name.normalizePolish() }
-            SortOrder.DESCENDING -> filtered.sortedByDescending { it.name.normalizePolish() }
-        }
-
-        sorted.groupBy { it.category }
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = emptyMap()
-    )
 
     fun onSearchQueryChange(newQuery: String) {
         _searchQuery.value = newQuery
@@ -66,9 +46,7 @@ class PantryViewModel(
     fun loadData() {
         viewModelScope.launch {
             _isLoading.value = true
-            // Pobieramy listę wszystkich dostępnych produktów (np. z JSONa/Firestore)
             _allProducts.value = repository.getAllProducts()
-            // Nie musimy już ręcznie pobierać userPantryIds, bo Flow powyżej sam to robi
             _isLoading.value = false
         }
     }
@@ -84,11 +62,10 @@ class PantryViewModel(
         }
     }
 
-    // Funkcja wywoływana z formularza
     fun requestNewProduct(name: String, barcode: String) {
         viewModelScope.launch {
             repository.submitProductRequest(name, barcode)
-            _unrecognizedBarcode.value = null // Zamknij formularz
+            _unrecognizedBarcode.value = null
         }
     }
 
@@ -96,18 +73,14 @@ class PantryViewModel(
         _unrecognizedBarcode.value = null
     }
 
-    // Zaktualizowana funkcja skanowania
     suspend fun addProductByBarcode(barcode: String): AddProductResult {
         return try {
-            // 1. Szukamy produktu w załadowanej już liście (pamiętaj o modelu z listą barcodes!)
             val product = _allProducts.value.find { it.barcodes.contains(barcode) }
 
             if (product != null) {
-                // 2. Jeśli produkt istnieje, dodajemy go do spiżarni w Firebase
                 repository.addProductToPantry(product.id)
                 AddProductResult.SUCCESS
             } else {
-                // 3. Jeśli nie znaleziono, ustawiamy unrecognizedBarcode, by UI pokazało NewProductRequestDialog
                 _unrecognizedBarcode.value = barcode
                 AddProductResult.NOT_FOUND
             }
