@@ -1,13 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">PosilkUZ</string>
-    <!-- Home screen -->
     <string name="greeting">Hi</string>
     <string name="home_question">What are you cooking today?</string>
     <string name="quick_actions">Quick actions</string>
     <string name="default_nickname">User</string>
 
-    <!-- Pantry -->
     <string name="pantry">Pantry</string>
     <string name="manage_ingredients">Manage ingredients</string>
     <string name="your_pantry">Your pantry</string>
@@ -43,7 +41,6 @@
         <item>box</item>
     </string-array>
 
-    <!-- Recipes -->
     <string name="recipes">Recipes</string>
     <string name="browse_recipes">Browse recipes</string>
     <string name="our_recipes">Our recipes</string>
@@ -61,22 +58,18 @@
     <string name="instruction_colon">Instructions:</string>
     <string name="unpin_recipe">Unpin recipe</string>
 
-    <!-- Recipe randomizer -->
     <string name="randomize_recipe">Randomize recipe</string>
     <string name="randomize">Randomize</string>
     <string name="randomize_again">Try again</string>
     <string name="shake_phone">Shake your phone!</string>
     <string name="back">Back</string>
 
-    <!-- Ads -->
     <string name="ads">Ads</string>
 
-    <!-- Grocery store -->
     <string name="find_grocery">Find a grocery store</string>
     <string name="open_google_maps">Open Google Maps with nearby stores</string>
     <string name="grocery_stores">Grocery stores</string>
 
-    <!-- Add product -->
     <string name="add_product">Add product</string>
     <string name="barcode">Barcode</string>
     <string name="scan_barcode">Scan barcode</string>
@@ -91,12 +84,10 @@
     <string name="unexpected_error">An unexpected error occurred.</string>
     <string name="send_request">Send request</string>
 
-    <!-- General errors -->
     <string name="error">Error</string>
     <string name="failed">Failed</string>
     <string name="fill_all_fields">Please fill in all fields</string>
 
-    <!-- Login -->
     <string name="login_error">Login error</string>
     <string name="fetch_user_id_error">Failed to fetch user ID</string>
     <string name="email">Email</string>
@@ -108,7 +99,6 @@
     <string name="login_success">Logged in successfully</string>
     <string name="logout">Log out</string>
 
-    <!-- Registration -->
     <string name="register_error">Registration error</string>
     <string name="create_account">Create account</string>
     <string name="nickname">Nickname</string>
@@ -116,7 +106,6 @@
     <string name="have_account">Already have an account? Log in</string>
     <string name="account_created">Account created!</string>
 
-    <!-- Profile & settings -->
     <string name="profile">Profile</string>
     <string name="coming_soon">Coming soon!</string>
     <string name="settings">Settings</string>
@@ -131,7 +120,6 @@
     <string name="language_polish">Polish</string>
     <string name="language_english">English</string>
 
-    <!-- Product approval (admin) -->
     <string name="approve_products">Approve products</string>
     <string name="reported_products">Reported products</string>
     <string name="no_new_reports">No new reports</string>
@@ -141,7 +129,6 @@
     <string name="code_assigned">Code assigned to existing product</string>
     <string name="error_assigning">Error while assigning</string>
 
-    <!-- Admin panel -->
     <string name="category_label">Category:</string>
     <string name="unit_label">Unit:</string>
     <string name="document_id_optional">Document ID (optional)</string>
@@ -152,9 +139,82 @@
     <string name="assign">Assign</string>
     <string name="confirm">Confirm</string>
 
-    <!-- Bottom navigation -->
     <string name="nav_home">Home</string>
     <string name="nav_pantry">Pantry</string>
     <string name="nav_recipes">Recipes</string>
     <string name="nav_profile">Profile</string>
+
+    <string name="cat_produkty_sypkie">Bulk products</string>
+    <string name="cat_nabial">Dairy</string>
+    <string name="cat_mieso">Meat</string>
+    <string name="cat_pieczywo">Bakery</string>
+    <string name="cat_warzywa">Vegetables</string>
+    <string name="cat_owoce">Fruits</string>
+    <string name="cat_napoje">Drinks</string>
+    <string name="cat_inne">Other</string>
+
+    <string name="prod_maka_pszenna">Wheat flour</string>
+    <string name="prod_maka_zytnia">Rye flour</string>
+    <string name="prod_cukier">Sugar</string>
+    <string name="prod_cukier_puder">Powdered sugar</string>
+    <string name="prod_sol">Salt</string>
+    <string name="prod_ryz">Rice</string>
+    <string name="prod_makaron">Pasta</string>
+    <string name="prod_kasza_gryczana">Buckwheat</string>
+    <string name="prod_mleko_32">Milk 3.2%</string>
+    <string name="prod_mleko_2">Milk 2%</string>
+    <string name="prod_jajka">Eggs</string>
+    <string name="prod_maslo">Butter</string>
+    <string name="prod_ser_zolty">Yellow cheese</string>
+    <string name="prod_piers_z_kurczaka">Chicken breast</string>
+    <string name="prod_ziemniaki">Potatoes</string>
+    <string name="prod_marchew">Carrots</string>
+    <string name="prod_cebula">Onion</string>
+    <string name="prod_czosnek">Garlic</string>
+    <string name="prod_papryka">Bell pepper</string>
+    <string name="prod_ogorek">Cucumber</string>
+    <string name="prod_pomidor">Tomato</string>
+    <string name="prod_salata">Lettuce</string>
+    <string name="prod_jablka">Apples</string>
+    <string name="prod_banany">Bananas</string>
+    <string name="prod_pomarancze">Oranges</string>
+    <string name="prod_chleb">Bread</string>
+    <string name="prod_ser_bialy">White cheese</string>
+    <string name="prod_jogurt_naturalny">Natural yogurt</string>
+    <string name="prod_smietana_18">Sour cream 18%</string>
+    <string name="prod_udko_z_kurczaka">Chicken leg</string>
+    <string name="prod_mieso_mielone">Minced meat</string>
+    <string name="prod_kielbasa">Sausage</string>
+    <string name="prod_boczek">Bacon</string>
+    <string name="prod_bulki">Rolls</string>
+    <string name="prod_bagietka">Baguette</string>
+    <string name="prod_truskawki">Strawberries</string>
+    <string name="prod_cytryna">Lemon</string>
+    <string name="prod_woda_mineralna">Mineral water</string>
+    <string name="prod_sok_pomaranczowy">Orange juice</string>
+    <string name="prod_cola">Cola</string>
+    <string name="prod_herbata">Tea</string>
+    <string name="prod_kawa">Coffee</string>
+
+    <string name="rec_nalesniki">Pancakes</string>
+    <string name="rec_jajecznica">Scrambled eggs</string>
+    <string name="rec_kurczak_z_ryzem">Chicken with rice</string>
+    <string name="rec_makaron_z_serem">Pasta with cheese</string>
+    <string name="rec_salatka_warzywna">Vegetable salad</string>
+    <string name="rec_kanapki_z_serem">Cheese sandwiches</string>
+    <string name="rec_ziemniaki_gotowane">Boiled potatoes</string>
+    <string name="rec_kurczak_z_warzywami">Chicken with vegetables</string>
+    <string name="rec_owocowa_salatka">Fruit salad</string>
+    <string name="rec_tosty_z_jajkiem">Toast with egg</string>
+
+    <string name="inst_nalesniki">Mix the ingredients into a smooth batter and fry thin pancakes on a hot pan.</string>
+    <string name="inst_jajecznica">Melt butter in a pan, crack the eggs, and fry while stirring until set.</string>
+    <string name="inst_kurczak_z_ryzem">Cook the rice. Cut the chicken, season with salt, and fry. Serve together.</string>
+    <string name="inst_makaron_z_serem">Cook the pasta, drain, and mix with grated cheese until melted.</string>
+    <string name="inst_salatka_warzywna">Chop all the vegetables and mix them in a bowl.</string>
+    <string name="inst_kanapki_z_serem">Spread butter on the bread, place the cheese, and cover with the second slice.</string>
+    <string name="inst_ziemniaki_gotowane">Peel the potatoes, cook in salted water until soft.</string>
+    <string name="inst_kurczak_z_warzywami">Chop the chicken and vegetables. Fry everything together in a pan until tender.</string>
+    <string name="inst_owocowa_salatka">Cut the fruit into pieces and mix in a bowl.</string>
+    <string name="inst_tosty_z_jajkiem">Fry the bread in butter, add the egg and fry until ready.</string>
 </resources>

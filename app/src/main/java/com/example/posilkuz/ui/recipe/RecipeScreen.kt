@@ -27,6 +27,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.posilkuz.R
 import com.example.posilkuz.data.model.Recipe
 import com.example.posilkuz.data.repository.PinnedRecipeRepository
+import com.example.posilkuz.ui.translation.getDynamicString
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -113,7 +114,7 @@ fun RecipeCard(
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = recipe.title,
+                    text = context.getDynamicString("rec", recipe.title, recipe.title),
                     style = MaterialTheme.typography.headlineSmall,
                     modifier = Modifier.weight(1f)
                 )
@@ -173,7 +174,7 @@ fun RecipeCard(
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = ingredientId.replace("_", " "),
+                                text = context.getDynamicString("prod", ingredientId, ingredientId.replace("_", " ")),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = if (hasIngredient) MaterialTheme.colorScheme.onSurface else Color.Gray
                             )
@@ -188,7 +189,7 @@ fun RecipeCard(
                         color = MaterialTheme.colorScheme.primary
                     )
                     Text(
-                        text = recipe.instructions,
+                        text = context.getDynamicString("inst", recipe.title, recipe.instructions),
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.padding(top = 4.dp)
                     )

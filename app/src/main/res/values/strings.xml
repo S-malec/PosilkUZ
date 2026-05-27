@@ -2,13 +2,11 @@
 <resources>
     <string name="app_name">PosilkUZ</string>
 
-    <!-- Ekran główny -->
     <string name="greeting">Cześć</string>
     <string name="home_question">Co dziś gotujesz?</string>
     <string name="quick_actions">Szybkie akcje</string>
     <string name="default_nickname">Użytkowniku</string>
 
-    <!-- Spiżarnia -->
     <string name="pantry">Spiżarnia</string>
     <string name="manage_ingredients">Zarządzaj składnikami</string>
     <string name="your_pantry">Twoja spiżarnia</string>
@@ -43,7 +41,6 @@
         <item>opak</item>
     </string-array>
 
-    <!-- Przepisy -->
     <string name="recipes">Przepisy</string>
     <string name="browse_recipes">Przeglądaj przepisy</string>
     <string name="our_recipes">Nasze przepisy</string>
@@ -61,22 +58,18 @@
     <string name="instruction_colon">Instrukcja:</string>
     <string name="unpin_recipe">Odepnij przepis</string>
 
-    <!-- Losowanie przepisu -->
     <string name="randomize_recipe">Losuj przepis</string>
     <string name="randomize">Losuj</string>
     <string name="randomize_again">Losuj ponownie</string>
     <string name="shake_phone">Potrząśnij telefonem!</string>
     <string name="back">Wróć</string>
 
-    <!-- Reklamy -->
     <string name="ads">Reklamy</string>
 
-    <!-- Sklep spożywczy -->
     <string name="find_grocery">Znajdź sklep spożywczy</string>
     <string name="open_google_maps">Otwórz Google Maps z najbliższymi sklepami</string>
     <string name="grocery_stores">Sklepy spożywcze</string>
 
-    <!-- Dodawanie produktu -->
     <string name="add_product">Dodaj produkt</string>
     <string name="scan_barcode">Skanuj kod kreskowy</string>
     <string name="barcode">Kod kreskowy</string>
@@ -91,12 +84,10 @@
     <string name="unexpected_error">Wystąpił nieoczekiwany błąd.</string>
     <string name="send_request">Wyślij prośbę</string>
 
-    <!-- Błędy ogólne -->
     <string name="error">Błąd</string>
     <string name="failed">Nie udało się</string>
     <string name="fill_all_fields">Uzupełnij wszystkie pola</string>
 
-    <!-- Logowanie -->
     <string name="login_error">Błąd logowania</string>
     <string name="fetch_user_id_error">Nie udało się pobrać ID użytkownika</string>
     <string name="email">Email</string>
@@ -108,7 +99,6 @@
     <string name="login_success">Zalogowano pomyślnie</string>
     <string name="logout">Wyloguj</string>
 
-    <!-- Rejestracja -->
     <string name="register_error">Błąd rejestracji</string>
     <string name="create_account">Stwórz konto</string>
     <string name="nickname">Nick</string>
@@ -117,7 +107,6 @@
     <string name="account_created">Konto utworzone!</string>
 
 
-    <!-- Profil i ustawienia -->
     <string name="profile">Profil</string>
     <string name="coming_soon">Wkrótce dostępny!</string>
     <string name="settings">Ustawienia</string>
@@ -132,7 +121,6 @@
     <string name="language_polish">Polski</string>
     <string name="language_english">English</string>
 
-    <!-- Zatwierdzanie produktów (admin) -->
     <string name="approve_products">Zatwierdź produkty</string>
     <string name="reported_products">Zgłoszone produkty</string>
     <string name="no_new_reports">Brak nowych zgłoszeń</string>
@@ -142,7 +130,6 @@
     <string name="code_assigned">Przypisano kod do istniejącego produktu</string>
     <string name="error_assigning">Błąd podczas przypisywania</string>
 
-    <!-- Admin panel -->
     <string name="category_label">Kategoria:</string>
     <string name="unit_label">Jednostka:</string>
     <string name="document_id_optional">ID Dokumentu (opcjonalnie)</string>
@@ -153,9 +140,82 @@
     <string name="assign">Przypisz</string>
     <string name="confirm">Zatwierdź</string>
 
-    <!-- Nawigacja dolna -->
     <string name="nav_home">Główna</string>
     <string name="nav_pantry">Spiżarnia</string>
     <string name="nav_recipes">Przepisy</string>
     <string name="nav_profile">Profil</string>
+
+    <string name="cat_produkty_sypkie">Produkty sypkie</string>
+    <string name="cat_nabial">Nabiał</string>
+    <string name="cat_mieso">Mięso</string>
+    <string name="cat_pieczywo">Pieczywo</string>
+    <string name="cat_warzywa">Warzywa</string>
+    <string name="cat_owoce">Owoce</string>
+    <string name="cat_napoje">Napoje</string>
+    <string name="cat_inne">Inne</string>
+
+    <string name="prod_maka_pszenna">Mąka pszenna</string>
+    <string name="prod_maka_zytnia">Mąka żytnia</string>
+    <string name="prod_cukier">Cukier</string>
+    <string name="prod_cukier_puder">Cukier puder</string>
+    <string name="prod_sol">Sól</string>
+    <string name="prod_ryz">Ryż</string>
+    <string name="prod_makaron">Makaron</string>
+    <string name="prod_kasza_gryczana">Kasza gryczana</string>
+    <string name="prod_mleko_32">Mleko 3.2%</string>
+    <string name="prod_mleko_2">Mleko 2%</string>
+    <string name="prod_jajka">Jajka</string>
+    <string name="prod_maslo">Masło</string>
+    <string name="prod_ser_zolty">Ser żółty</string>
+    <string name="prod_piers_z_kurczaka">Pierś z kurczaka</string>
+    <string name="prod_ziemniaki">Ziemniaki</string>
+    <string name="prod_marchew">Marchew</string>
+    <string name="prod_cebula">Cebula</string>
+    <string name="prod_czosnek">Czosnek</string>
+    <string name="prod_papryka">Papryka</string>
+    <string name="prod_ogorek">Ogórek</string>
+    <string name="prod_pomidor">Pomidor</string>
+    <string name="prod_salata">Sałata</string>
+    <string name="prod_jablka">Jabłka</string>
+    <string name="prod_banany">Banany</string>
+    <string name="prod_pomarancze">Pomarańcze</string>
+    <string name="prod_chleb">Chleb</string>
+    <string name="prod_ser_bialy">Ser biały</string>
+    <string name="prod_jogurt_naturalny">Jogurt naturalny</string>
+    <string name="prod_smietana_18">Śmietana 18%</string>
+    <string name="prod_udko_z_kurczaka">Udko z kurczaka</string>
+    <string name="prod_mieso_mielone">Mięso mielone</string>
+    <string name="prod_kielbasa">Kiełbasa</string>
+    <string name="prod_boczek">Boczek</string>
+    <string name="prod_bulki">Bułki</string>
+    <string name="prod_bagietka">Bagietka</string>
+    <string name="prod_truskawki">Truskawki</string>
+    <string name="prod_cytryna">Cytryna</string>
+    <string name="prod_woda_mineralna">Woda mineralna</string>
+    <string name="prod_sok_pomaranczowy">Sok pomarańczowy</string>
+    <string name="prod_cola">Cola</string>
+    <string name="prod_herbata">Herbata</string>
+    <string name="prod_kawa">Kawa</string>
+
+    <string name="rec_nalesniki">Naleśniki</string>
+    <string name="rec_jajecznica">Jajecznica</string>
+    <string name="rec_kurczak_z_ryzem">Kurczak z ryżem</string>
+    <string name="rec_makaron_z_serem">Makaron z serem</string>
+    <string name="rec_salatka_warzywna">Sałatka warzywna</string>
+    <string name="rec_kanapki_z_serem">Kanapki z serem</string>
+    <string name="rec_ziemniaki_gotowane">Ziemniaki gotowane</string>
+    <string name="rec_kurczak_z_warzywami">Kurczak z warzywami</string>
+    <string name="rec_owocowa_salatka">Owocowa sałatka</string>
+    <string name="rec_tosty_z_jajkiem">Tosty z jajkiem</string>
+
+    <string name="inst_nalesniki">Wymieszaj składniki na gładkie ciasto i smaż cienkie naleśniki na rozgrzanej patelni.</string>
+    <string name="inst_jajecznica">Rozpuść masło na patelni, wbij jajka i smaż mieszając aż się zetną.</string>
+    <string name="inst_kurczak_z_ryzem">Ugotuj ryż. Kurczaka pokrój, dopraw solą i usmaż. Podawaj razem.</string>
+    <string name="inst_makaron_z_serem">Ugotuj makaron, odcedź i wymieszaj z startym serem aż się rozpuści.</string>
+    <string name="inst_salatka_warzywna">Pokrój wszystkie warzywa i wymieszaj w misce.</string>
+    <string name="inst_kanapki_z_serem">Posmaruj chleb masłem, połóż ser i przykryj drugą kromką.</string>
+    <string name="inst_ziemniaki_gotowane">Obierz ziemniaki, ugotuj w osolonej wodzie do miękkości.</string>
+    <string name="inst_kurczak_z_warzywami">Pokrój kurczaka oraz warzywa. Podsmaż wszystko razem na patelni do miękkości.</string>
+    <string name="inst_owocowa_salatka">Pokrój owoce na kawałki i wymieszaj w misce.</string>
+    <string name="inst_tosty_z_jajkiem">Podsmaż chleb na maśle, dodaj jajko i smaż aż będzie gotowe.</string>
 </resources>
