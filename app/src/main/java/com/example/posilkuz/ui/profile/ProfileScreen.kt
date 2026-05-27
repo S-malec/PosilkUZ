@@ -95,7 +95,6 @@ fun ProfileScreen(
                 onBack = { currentSubScreen = ProfileSubScreen.MAIN },
                 onNavigateToDisplay = { currentSubScreen = ProfileSubScreen.DISPLAY },
                 onNavigateToLanguage = { currentSubScreen = ProfileSubScreen.LANGUAGE },
-                onNavigateToDisplay = { currentSubScreen = ProfileSubScreen.DISPLAY },
                 onTestNotification = onTestNotification
             )
             ProfileSubScreen.DISPLAY -> DisplaySettingsView(
@@ -168,6 +167,12 @@ fun SettingsView(
         leadingContent = { Icon(Icons.Default.Language, contentDescription = null) },
         trailingContent = { Icon(Icons.Default.KeyboardArrowRight, contentDescription = null) },
         modifier = Modifier.clickable { onNavigateToLanguage() }
+    )
+    ListItem(
+        headlineContent = { Text("Powiadomienie testowe") },
+        supportingContent = { Text("Sprawdź, czy powiadomienia działają") },
+        leadingContent = { Icon(Icons.Default.NotificationsActive, contentDescription = "Ikona dzwonka") },
+        modifier = Modifier.clickable { onTestNotification() }
     )
 }
 
