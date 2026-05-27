@@ -5,6 +5,18 @@ import com.google.common.reflect.TypeToken
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.gson.Gson
 
+/**
+ * Importuje przepisy z lokalnego pliku JSON do kolekcji `recipes` w Firebase Firestore.
+ *
+ * Odczytuje plik `recipes.json` z folderu `assets`, parsuje go jako listę map,
+ * a następnie wysyła wszystkie rekordy do Firestore za pomocą operacji wsadowej (batch).
+ * ID dokumentu Firestore jest generowane na podstawie pola `title` — tytuł przepisu
+ * jest zamieniony na małe litery, a spacje zastąpione znakiem podkreślenia.
+ *
+ * Funkcja jest przeznaczona do jednorazowego zasilenia bazy danych danymi początkowymi.
+ *
+ * @param context kontekst aplikacji potrzebny do odczytu pliku z `assets`
+ */
 fun importRecipesFromJson(context: Context) {
     val db = FirebaseFirestore.getInstance()
     val gson = Gson()
@@ -14,17 +26,14 @@ fun importRecipesFromJson(context: Context) {
             .bufferedReader()
             .use { it.readText() }
 
-        // Parsowanie JSONa na listę map
         val listType = object : TypeToken<List<Map<String, Any>>>() {}.type
         val recipes: List<Map<String, Any>> = gson.fromJson(jsonString, listType)
 
-        // Batch (szybsze wrzucenie danych)
         val batch = db.batch()
 
         recipes.forEach { recipe ->
             val title = recipe["title"] as String
 
-            // ID dokumentu na podstawie title (opcjonalnie możesz zrobić slug)
             val docId = title
                 .lowercase()
                 .replace(" ", "_")

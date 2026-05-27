@@ -10,6 +10,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.example.posilkuz.R
 
+/**
+ * Ekran zastępczy profilu użytkownika wyświetlający komunikat „wkrótce dostępne".
+ *
+ * Używany jako tymczasowy placeholder przed zaimplementowaniem pełnej funkcjonalności
+ * profilu użytkownika.
+ *
+ * @param innerPadding padding wewnętrzny przekazywany z zewnętrznego [Scaffold]
+ */
 @Composable
 fun ProfilePlaceholderScreen(
     innerPadding: PaddingValues = PaddingValues()

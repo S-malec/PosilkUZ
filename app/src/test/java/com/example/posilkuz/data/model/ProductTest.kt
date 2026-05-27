@@ -4,11 +4,22 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
+/**
+ * Testy jednostkowe klasy danych [Product].
+ *
+ * Weryfikują poprawność domyślnych wartości konstruktora (wymaganych przez Firestore)
+ * oraz poprawność inicjalizacji obiektu z podanymi wartościami.
+ */
 class ProductTest {
 
+    /**
+     * Sprawdza, czy konstruktor bezparametrowy tworzy obiekt z pustymi wartościami domyślnymi.
+     *
+     * Pusty konstruktor jest wymagany przez Firebase Firestore do automatycznej
+     * deserializacji dokumentów przy użyciu refleksji.
+     */
     @Test
     fun `default constructor should create empty product`() {
-        // Ważne dla Firebase Firestore - musi istnieć pusty konstruktor
         val product = Product()
 
         assertEquals("", product.id)
@@ -18,6 +29,10 @@ class ProductTest {
         assertTrue(product.barcodes.isEmpty())
     }
 
+    /**
+     * Sprawdza, czy wszystkie właściwości obiektu [Product] są poprawnie ustawiane
+     * podczas inicjalizacji z explicite podanymi wartościami.
+     */
     @Test
     fun `product initialization with values should set properties correctly`() {
         val product = Product(

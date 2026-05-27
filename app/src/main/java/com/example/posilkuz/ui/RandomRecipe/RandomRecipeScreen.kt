@@ -50,6 +50,18 @@ import com.example.posilkuz.ui.recipe.RecipeCard
 import kotlinx.coroutines.delay
 import kotlin.math.sqrt
 
+/**
+ * Ekran losowania przepisu kulinarnego sterowany ruchem telefonu.
+ *
+ * Rejestruje odczyty akcelerometru i animuje emoji jabłka poruszające się
+ * po ekranie zgodnie z wychyleniem urządzenia (symulacja fizyki). Potrząśnięcie
+ * telefonem (przyspieszenie > 20 m/s²) losuje przepis z bazy danych.
+ * Po wylosowaniu wyświetla kartę przepisu ([RecipeCard]) z opcjami przypięcia
+ * do ekranu głównego i ponownego losowania.
+ *
+ * @param onBack wywołanie zwrotne powrotu do poprzedniego ekranu
+ * @param viewModel instancja [RandomRecipeViewModel] obsługująca logikę ekranu
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RandomRecipeScreen(
@@ -83,11 +95,10 @@ fun RandomRecipeScreen(
         sensorManager?.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
     }
 
-
     DisposableEffect(Unit) {
         val listener = object : SensorEventListener {
             override fun onSensorChanged(event: SensorEvent?) {
-                if(event?.sensor?.type == Sensor.TYPE_ACCELEROMETER) {
+                if (event?.sensor?.type == Sensor.TYPE_ACCELEROMETER) {
                     val x = event.values[0]
                     val y = event.values[1]
                     val z = event.values[2]
@@ -96,12 +107,11 @@ fun RandomRecipeScreen(
 
                     viewModel.onAcceleration(x, y)
 
-                    if(acceleration > 20 && recipe == null && !isLoading) {
+                    if (acceleration > 20 && recipe == null && !isLoading) {
                         viewModel.onShake()
                     }
                 }
             }
-
 
             override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) = Unit
         }
@@ -158,7 +168,7 @@ fun RandomRecipeScreen(
                             recipe = currentRecipe,
                             userPantryIds = userPantryIds
                         )
-                        
+
                         Button(
                             onClick = { PinnedRecipeRepository.toggle(context, currentRecipe) },
                             colors = ButtonDefaults.buttonColors(
@@ -177,7 +187,7 @@ fun RandomRecipeScreen(
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(if (isPinned) stringResource(R.string.unpin_from_home) else stringResource(R.string.pin_to_home))
                         }
-                        
+
                         Button(
                             onClick = { viewModel.dismissRecipe() },
                             modifier = Modifier.padding(top = 8.dp)

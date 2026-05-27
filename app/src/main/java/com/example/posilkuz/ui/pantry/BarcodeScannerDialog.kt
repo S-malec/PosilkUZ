@@ -29,6 +29,18 @@ import androidx.compose.ui.unit.dp
 import com.example.posilkuz.R
 import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
 
+/**
+ * Dialog umożliwiający dodanie produktu do spiżarni poprzez zeskanowanie lub ręczne wpisanie kodu kreskowego.
+ *
+ * Udostępnia dwie ścieżki wprowadzania kodu:
+ * - skanowanie kamery przy użyciu Google ML Kit ([GmsBarcodeScanning]),
+ * - ręczne wpisanie cyfr kodu kreskowego w rozwijalnym polu tekstowym.
+ *
+ * Po pomyślnym odczycie kodu wywołuje [onBarcodeScanned] i zamyka dialog.
+ *
+ * @param onDismiss wywołanie zwrotne zamknięcia dialogu bez akcji
+ * @param onBarcodeScanned wywołanie zwrotne z odczytanym kodem kreskowym jako parametrem
+ */
 @Composable
 fun BarcodeScannerDialog(
     onDismiss: () -> Unit,
@@ -45,7 +57,6 @@ fun BarcodeScannerDialog(
         title = { Text(text = stringResource(R.string.add_product)) },
         text = {
             Column {
-                // PRZYCISK 1: SKANOWANIE
                 Button(
                     onClick = {
                         scanner.startScan()
@@ -65,7 +76,6 @@ fun BarcodeScannerDialog(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // PRZYCISK 2: ROZWIJANIE WPISYWANIA RĘCZNEGO
                 if (!isManualInputVisible) {
                     TextButton(
                         onClick = { isManualInputVisible = true },
@@ -77,7 +87,6 @@ fun BarcodeScannerDialog(
                     }
                 }
 
-                // SEKCJA ROZWIJANA (POJAWIA SIĘ PO NACIŚNIĘCIU)
                 AnimatedVisibility(visible = isManualInputVisible) {
                     Column {
                         Spacer(modifier = Modifier.height(8.dp))
@@ -108,10 +117,7 @@ fun BarcodeScannerDialog(
                 }
             }
         },
-        confirmButton = {
-            // Zostawiamy puste lub dodajemy przycisk zamknięcia,
-            // bo główne akcje są wewnątrz 'text' jako duże przyciski
-        },
+        confirmButton = {},
         dismissButton = {
             TextButton(onClick = onDismiss) { Text(text = stringResource(R.string.cancel)) }
         }

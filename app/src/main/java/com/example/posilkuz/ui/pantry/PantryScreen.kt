@@ -1,5 +1,6 @@
 package com.example.posilkuz.ui.pantry
 
+import android.provider.Settings.Global.getString
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -33,6 +34,17 @@ import com.example.posilkuz.ui.translation.TranslationHelper
 import com.example.posilkuz.ui.translation.getDynamicString
 import kotlinx.coroutines.launch
 
+/**
+ * Ekran spiżarni wyświetlający listę dostępnych produktów pogrupowanych według kategorii.
+ *
+ * Umożliwia użytkownikowi zarządzanie zawartością spiżarni poprzez zaznaczanie
+ * i odznaczanie produktów. Obsługuje wyszukiwanie z normalizacją polskich znaków,
+ * sortowanie alfabetyczne oraz dodawanie produktów przez skanowanie kodu kreskowego ([BarcodeScannerDialog]).
+ * W przypadku nierozpoznanego kodu kreskowego wyświetla [NewProductRequestDialog].
+ *
+ * @param viewModel instancja [PantryViewModel] obsługująca logikę ekranu
+ * @param innerPadding padding wewnętrzny przekazywany z zewnętrznego [Scaffold], np. z dolnego paska nawigacji
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PantryScreen(
@@ -95,12 +107,11 @@ fun PantryScreen(
                                 snackbarHostState.showSnackbar(TranslationHelper.StringResource(R.string.product_added_to_pantry).asString(context))
                             }
                             PantryViewModel.AddProductResult.NOT_FOUND -> {
-                                // Formularz otworzy się automatycznie przez LiveData/Flow
+                                // Dialog zgłoszenia zostanie pokazany automatycznie przez ViewModel
                             }
                             PantryViewModel.AddProductResult.ERROR -> {
                                 snackbarHostState.showSnackbar(TranslationHelper.StringResource(R.string.failed_to_add_product).asString(context))
                             }
-                            else -> {} // Ta linijka naprawia błąd "must be exhaustive"
                         }
                     } catch (e: Exception) {
                         snackbarHostState.showSnackbar(TranslationHelper.StringResource(R.string.unexpected_error).asString(context))
@@ -220,6 +231,17 @@ fun PantryScreen(
     }
 }
 
+/**
+ * Rozwijana sekcja kategorii produktów w liście spiżarni.
+ *
+ * Wyświetla nazwę kategorii z ikoną strzałki i po kliknięciu rozwija listę
+ * produktów należących do tej kategorii.
+ *
+ * @param categoryName nazwa kategorii produktów
+ * @param products lista produktów należących do tej kategorii
+ * @param pantryIds zbiór identyfikatorów produktów aktualnie w spiżarni użytkownika
+ * @param onProductToggle wywołanie zwrotne z identyfikatorem produktu po kliknięciu wiersza
+ */
 @Composable
 fun CategorySection(
     categoryName: String,
@@ -277,6 +299,16 @@ fun CategorySection(
     }
 }
 
+/**
+ * Wiersz pojedynczego produktu w liście kategorii.
+ *
+ * Wyświetla nazwę i jednostkę produktu oraz pole wyboru (checkbox). Tło wiersza
+ * zmienia kolor animacyjnie w zależności od tego, czy produkt jest zaznaczony.
+ *
+ * @param product produkt do wyświetlenia
+ * @param isSelected `true`, jeśli produkt znajduje się w spiżarni użytkownika
+ * @param onCheckedChange wywołanie zwrotne zmiany stanu zaznaczenia
+ */
 @Composable
 fun ProductRow(
     product: Product,
@@ -322,6 +354,16 @@ fun ProductRow(
     }
 }
 
+/**
+ * Dialog zgłoszenia nowego produktu wyświetlany, gdy zeskanowany kod kreskowy
+ * nie pasuje do żadnego produktu w bazie danych.
+ *
+ * Użytkownik może wpisać nazwę produktu i wysłać zgłoszenie do administratora.
+ *
+ * @param barcode kod kreskowy nierozpoznanego produktu
+ * @param onDismiss wywołanie zwrotne zamknięcia dialogu bez zgłoszenia
+ * @param onSubmit wywołanie zwrotne wysłania zgłoszenia z nazwą i kodem kreskowym produktu
+ */
 @Composable
 fun NewProductRequestDialog(
     barcode: String,

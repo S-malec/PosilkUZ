@@ -14,20 +14,39 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
+/**
+ * ViewModel obsługujący logikę autoryzacji użytkownika.
+ *
+ * Zarządza stanem logowania i rejestracji przez Firebase Authentication,
+ * a po rejestracji zapisuje dane użytkownika (nick, e-mail, pusta spiżarnia)
+ * w kolekcji `users` w Firebase Firestore.
+ */
 class AuthViewModel : ViewModel() {
     private val auth = Firebase.auth
     private val db = FirebaseFirestore.getInstance()
 
-    // Stan ogólny (Sukces/Błąd)
+    /**
+     * Aktualny stan operacji autoryzacji, np. [AuthResult.Idle], [AuthResult.Loading],
+     * [AuthResult.Success] lub [AuthResult.Error].
+     */
     var authState by mutableStateOf<AuthResult>(AuthResult.Idle)
         private set
 
-    // Stan dla animacji weryfikacji
+    /**
+     * Flaga informująca czy trwa animacja weryfikacji połączenia z Firebase.
+     * Widoczna w UI jako wskaźnik ładowania z komunikatem.
+     */
     var isVerifying by mutableStateOf(false)
         private set
 
     /**
-     * Logowanie użytkownika
+     * Loguje użytkownika za pomocą adresu e-mail i hasła przez Firebase Authentication.
+     *
+     * Przed wysłaniem żądania waliduje, czy pola nie są puste. Ustawia [isVerifying]
+     * na `true` na czas operacji, a po jej zakończeniu aktualizuje [authState].
+     *
+     * @param email adres e-mail użytkownika
+     * @param pass hasło użytkownika
      */
     fun login(email: String, pass: String) {
         if (email.isEmpty() || pass.isEmpty()) {
@@ -40,7 +59,7 @@ class AuthViewModel : ViewModel() {
                 isVerifying = true
                 authState = AuthResult.Loading
 
-                delay(1500) // Efekt wizualny weryfikacji
+                delay(1500)
 
                 auth.signInWithEmailAndPassword(email, pass).await()
 
@@ -59,7 +78,15 @@ class AuthViewModel : ViewModel() {
     }
 
     /**
-     * Rejestracja nowego użytkownika z zapisem danych w Firestore
+     * Rejestruje nowego użytkownika i zapisuje jego dane w Firebase Firestore.
+     *
+     * Przed wysłaniem żądania waliduje, czy wszystkie pola są wypełnione.
+     * Po pomyślnym utworzeniu konta w Firebase Authentication zapisuje do Firestore
+     * dokument użytkownika zawierający nick, e-mail, pustą spiżarnię i znacznik czasu.
+     *
+     * @param email adres e-mail nowego użytkownika
+     * @param pass hasło nowego użytkownika
+     * @param nickname pseudonim wyświetlany w aplikacji
      */
     fun register(email: String, pass: String, nickname: String) {
         if (nickname.isEmpty() || email.isEmpty() || pass.isEmpty()) {
@@ -72,13 +99,11 @@ class AuthViewModel : ViewModel() {
                 isVerifying = true
                 authState = AuthResult.Loading
 
-                delay(2000) // Symulacja App Check
+                delay(2000)
 
-                // 1. Tworzenie konta w Firebase Auth
                 val authResult = auth.createUserWithEmailAndPassword(email, pass).await()
                 val userId = authResult.user?.uid ?: throw Exception("uid_null")
 
-                // 2. Przygotowanie danych (Wszystko w jednej mapie, by uniknąć nadpisywania)
                 val userMap = hashMapOf(
                     "nickname" to nickname,
                     "email" to email,
@@ -86,12 +111,10 @@ class AuthViewModel : ViewModel() {
                     "createdAt" to com.google.firebase.Timestamp.now()
                 )
 
-                // 3. Zapis do Firestore (Używamy await(), więc kod czeka na zakończenie zapisu)
                 db.collection("users").document(userId).set(userMap).await()
 
                 authState = AuthResult.Success
             } catch (e: Exception) {
-                // Jeśli np. Auth się uda, ale Firestore padnie, warto tu obsłużyć wycofanie zmian
                 authState = AuthResult.Error(
                     when (e.message) {
                         "uid_null" -> TranslationHelper.StringResource(R.string.fetch_user_id_error)

@@ -11,46 +11,56 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 
+/**
+ * Wyliczenie reprezentujące możliwe tryby motywu aplikacji.
+ */
 enum class ThemeMode {
-    LIGHT, DARK, SYSTEM
+    /** Wymusza jasny motyw niezależnie od ustawień systemowych. */
+    LIGHT,
+    /** Wymusza ciemny motyw niezależnie od ustawień systemowych. */
+    DARK,
+    /** Stosuje motyw zgodnie z ustawieniami systemowymi urządzenia. */
+    SYSTEM
 }
 
+/** Schemat kolorów dla ciemnego motywu aplikacji. */
 private val DarkColorScheme = darkColorScheme(
     primary = Purple80,
     secondary = PurpleGrey80,
     tertiary = Pink80
 )
 
+/** Schemat kolorów dla jasnego motywu aplikacji. */
 private val LightColorScheme = lightColorScheme(
     primary = Purple40,
     secondary = PurpleGrey40,
     tertiary = Pink40
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
 )
 
+/**
+ * Główny motyw aplikacji PosiłkUZ oparty na Material3.
+ *
+ * Wybiera schemat kolorów na podstawie [themeMode]. Obsługuje dynamiczne kolory
+ * dostępne na Androidzie 12 (API 31) i nowszych, jednak domyślnie są one wyłączone,
+ * aby zachować spójność z niestandardową paletą aplikacji.
+ *
+ * @param themeMode wybrany tryb motywu; domyślnie [ThemeMode.SYSTEM]
+ * @param dynamicColor czy używać dynamicznych kolorów Material You (Android 12+);
+ *   domyślnie `false`
+ * @param content zawartość UI do wyrenderowania wewnątrz motywu
+ */
 @Composable
 fun PosilkUZTheme(
-    themeMode: ThemeMode = ThemeMode.SYSTEM, // Zamieniamy darkTheme na themeMode
-    dynamicColor: Boolean = false, // UWAGA: Zmieniłem na false (wyjaśnienie niżej)
+    themeMode: ThemeMode = ThemeMode.SYSTEM,
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
-    // 1. Sprawdzamy, czy aplikacja ma być ciemna na podstawie wyboru użytkownika
     val isDark = when (themeMode) {
         ThemeMode.LIGHT -> false
         ThemeMode.DARK -> true
         ThemeMode.SYSTEM -> isSystemInDarkTheme()
     }
 
-    // 2. Podstawiamy odpowiednie kolory
     val colorScheme = when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current

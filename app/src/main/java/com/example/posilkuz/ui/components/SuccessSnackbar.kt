@@ -14,10 +14,20 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.example.posilkuz.ui.translation.TranslationHelper
 import com.example.posilkuz.R
+
+/**
+ * Niestandardowy komponent snackbara wyświetlający powiadomienie o sukcesie lub błędzie.
+ *
+ * Automatycznie dobiera kolor tła i ikonę na podstawie treści wiadomości — jeśli komunikat
+ * zawiera słowo odpowiadające kluczowi `R.string.error` lub `R.string.failed`,
+ * snackbar jest renderowany w kolorze czerwonym z ikoną błędu; w pozostałych przypadkach
+ * wyświetlany jest w kolorze zielonym z ikoną sukcesu.
+ *
+ * @param data dane snackbara dostarczane przez [SnackbarHostState], zawierające treść komunikatu
+ */
 @Composable
 fun AppSnackbar(data: SnackbarData) {
     val context = LocalContext.current
-    // Sprawdzamy czy w treści jest słowo "błąd" lub "nieznany", by zmienić kolor na czerwony
     val isError = data.visuals.message.contains(TranslationHelper.StringResource(R.string.error).asString(context), ignoreCase = true) ||
             data.visuals.message.contains(TranslationHelper.StringResource(R.string.failed).asString(context), ignoreCase = true)
 

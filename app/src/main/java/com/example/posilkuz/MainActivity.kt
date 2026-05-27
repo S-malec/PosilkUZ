@@ -51,24 +51,46 @@ import com.example.posilkuz.ui.translation.LanguageHelper
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
+/**
+ * Model danych reprezentujący pojedynczą zakładkę w dolnym pasku nawigacji.
+ *
+ * @property label tekst etykiety wyświetlanej pod ikoną zakładki
+ * @property icon ikona wektorowa wyświetlana w zakładce
+ */
 data class TabItem(
     val label: String,
     val icon: ImageVector
 )
 
-
-
+/**
+ * Główna aktywność aplikacji PosiłkUZ.
+ *
+ * Odpowiada za inicjalizację nawigacji, ustawienie języka aplikacji
+ * oraz zarządzanie stanem motywu. Konfiguruje graf nawigacyjny złożony
+ * z ekranu autoryzacji ([AuthScreen]) i ekranu głównego ([MainPagerScreen]).
+ */
 class MainActivity : ComponentActivity() {
 
+    /**
+     * Nadpisuje kontekst bazowy w celu zastosowania zapisanego języka użytkownika
+     * przed utworzeniem aktywności.
+     *
+     * @param newBase bazowy kontekst przekazany przez system Android
+     */
     override fun attachBaseContext(newBase: Context) {
         val lang = LanguageHelper.getSavedLanguage(newBase)
         val context = LanguageHelper.setLocale(newBase, lang)
         super.attachBaseContext(context)
     }
 
+    /**
+     * Tworzy aktywność, konfiguruje zakładki nawigacyjne, inicjalizuje [PinnedRecipeRepository]
+     * oraz buduje drzewo UI z Jetpack Compose.
+     *
+     * @param savedInstanceState stan zapisany z poprzedniej instancji aktywności lub `null`
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
 
         // 4 zakładki — Sklepy dostępne jako kafelek na HomeScreen
         val mainTabs = listOf(
@@ -82,7 +104,6 @@ class MainActivity : ComponentActivity() {
 
         enableEdgeToEdge()
         setContent {
-            // Stan motywu z commitu kolegi — hoistowany tutaj, żeby działał globalnie
             var currentTheme by remember { mutableStateOf(ThemeMode.SYSTEM) }
 
             val navController = rememberNavController()
@@ -92,7 +113,6 @@ class MainActivity : ComponentActivity() {
             val onShowMaps: () -> Unit = { context.openGroceryMaps() }
 
             PosilkUZTheme(themeMode = currentTheme) {
-                // Surface z commitu kolegi — naprawia tło przy zmianie motywu
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
@@ -118,11 +138,11 @@ class MainActivity : ComponentActivity() {
                                     }
                                 },
                                 onShowMaps = onShowMaps,
-                                        onNavigateToRandom = { navController.navigate("random_recipe") }  // ← DODAJ
+                                onNavigateToRandom = { navController.navigate("random_recipe") }
                             )
                         }
 
-                        composable("random_recipe") {  // ← DODAJ
+                        composable("random_recipe") {
                             RandomRecipeScreen(onBack = { navController.popBackStack() })
                         }
 
@@ -133,6 +153,19 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+/**
+ * Ekran główny aplikacji oparty na poziomym pagerze ze czterema zakładkami.
+ *
+ * Renderuje dolny pasek nawigacji ([NavigationBar]) oraz przełącza strony pagera
+ * z animacją po kliknięciu zakładki lub przeciągnięciu palcem.
+ *
+ * @param mainTabs lista zakładek do wyświetlenia w dolnym pasku nawigacji
+ * @param currentTheme aktualnie wybrany motyw aplikacji
+ * @param onThemeChange wywołanie zwrotne przy zmianie motywu przez użytkownika
+ * @param onLogout wywołanie zwrotne wylogowania użytkownika
+ * @param onShowMaps wywołanie zwrotne otwierające Google Maps z pobliskimi sklepami
+ * @param onNavigateToRandom wywołanie zwrotne nawigacji do ekranu losowego przepisu
+ */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MainPagerScreen(

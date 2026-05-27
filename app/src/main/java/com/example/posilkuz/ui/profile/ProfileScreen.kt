@@ -32,14 +32,32 @@ import com.example.posilkuz.ui.translation.TranslationHelper
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
 
+/**
+ * Wyliczenie reprezentujące możliwe podekrany w sekcji profilu użytkownika.
+ */
 enum class ProfileSubScreen {
+    /** Widok główny profilu z listą opcji. */
     MAIN,
+    /** Widok ustawień aplikacji. */
     SETTINGS,
+    /** Widok ustawień wyglądu (motyw). */
     DISPLAY,
+    /** Widok ustawień języka aplikacji. */
     LANGUAGE,
+    /** Panel administratora do zarządzania zgłoszeniami produktów. */
     ADMIN_PANEL
 }
 
+/**
+ * Ekran profilu użytkownika zarządzający nawigacją między podekranami.
+ *
+ * Obsługuje przycisk Wstecz systemu Android, cofając do poprzedniego podekranu
+ * zamiast zamykać aplikację.
+ *
+ * @param currentTheme aktualnie wybrany motyw aplikacji
+ * @param onThemeChange wywołanie zwrotne zmiany motywu przez użytkownika
+ * @param innerPadding padding wewnętrzny przekazywany z zewnętrznego [Scaffold]
+ */
 @Composable
 fun ProfileScreen(
     currentTheme: ThemeMode,
@@ -47,7 +65,7 @@ fun ProfileScreen(
     innerPadding: PaddingValues = PaddingValues()
 ) {
     var currentSubScreen by remember { mutableStateOf(ProfileSubScreen.MAIN) }
-    // Obsługa przycisku wstecz
+
     BackHandler(enabled = currentSubScreen != ProfileSubScreen.MAIN) {
         currentSubScreen = when (currentSubScreen) {
             ProfileSubScreen.DISPLAY -> ProfileSubScreen.SETTINGS
@@ -67,7 +85,7 @@ fun ProfileScreen(
         when (currentSubScreen) {
             ProfileSubScreen.MAIN -> ProfileMainView(
                 onNavigateToSettings = { currentSubScreen = ProfileSubScreen.SETTINGS },
-                onNavigateToAdmin = { currentSubScreen = ProfileSubScreen.ADMIN_PANEL } // <-- Przekazanie akcji
+                onNavigateToAdmin = { currentSubScreen = ProfileSubScreen.ADMIN_PANEL }
             )
             ProfileSubScreen.ADMIN_PANEL -> AdminRequestsView(
                 onBack = { currentSubScreen = ProfileSubScreen.MAIN }
@@ -82,13 +100,19 @@ fun ProfileScreen(
                 onThemeChange = onThemeChange,
                 onBack = { currentSubScreen = ProfileSubScreen.SETTINGS }
             )
-            ProfileSubScreen.LANGUAGE -> LanguageSettingsView( // add this
+            ProfileSubScreen.LANGUAGE -> LanguageSettingsView(
                 onBack = { currentSubScreen = ProfileSubScreen.SETTINGS }
             )
         }
     }
 }
 
+/**
+ * Główny widok profilu z listą dostępnych opcji.
+ *
+ * @param onNavigateToSettings wywołanie zwrotne nawigacji do podekranu ustawień
+ * @param onNavigateToAdmin wywołanie zwrotne nawigacji do panelu administratora
+ */
 @Composable
 fun ProfileMainView(onNavigateToSettings: () -> Unit, onNavigateToAdmin: () -> Unit) {
     Text(text = stringResource(R.string.my_profile),
@@ -101,7 +125,6 @@ fun ProfileMainView(onNavigateToSettings: () -> Unit, onNavigateToAdmin: () -> U
         modifier = Modifier.clickable { onNavigateToSettings() }
     )
 
-    // Przycisk widoczny dla administratora
     ListItem(
         headlineContent = { Text(text = stringResource(R.string.approve_products)) },
         leadingContent = { Icon(Icons.Default.FactCheck, contentDescription = null) },
@@ -110,11 +133,18 @@ fun ProfileMainView(onNavigateToSettings: () -> Unit, onNavigateToAdmin: () -> U
     )
 }
 
+/**
+ * Podekran ustawień z listą kategorii ustawień.
+ *
+ * @param onBack wywołanie zwrotne powrotu do głównego widoku profilu
+ * @param onNavigateToDisplay wywołanie zwrotne nawigacji do ustawień wyglądu
+ * @param onNavigateToLanguage wywołanie zwrotne nawigacji do ustawień języka
+ */
 @Composable
 fun SettingsView(
     onBack: () -> Unit,
     onNavigateToDisplay: () -> Unit,
-    onNavigateToLanguage: () -> Unit // add this
+    onNavigateToLanguage: () -> Unit
 ) {
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 16.dp)) {
         IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.back)) }
@@ -136,6 +166,13 @@ fun SettingsView(
     )
 }
 
+/**
+ * Podekran ustawień wyglądu pozwalający wybrać motyw aplikacji.
+ *
+ * @param currentTheme aktualnie wybrany motyw
+ * @param onThemeChange wywołanie zwrotne zmiany motywu
+ * @param onBack wywołanie zwrotne powrotu do ekranu ustawień
+ */
 @Composable
 fun DisplaySettingsView(
     currentTheme: ThemeMode,
@@ -155,6 +192,14 @@ fun DisplaySettingsView(
     }
 }
 
+/**
+ * Podekran ustawień języka aplikacji.
+ *
+ * Zapisuje wybrany język w SharedPreferences i restartuje aktywność,
+ * aby zastosować zmianę lokalizacji.
+ *
+ * @param onBack wywołanie zwrotne powrotu do ekranu ustawień
+ */
 @Composable
 fun LanguageSettingsView(onBack: () -> Unit) {
     val context = LocalContext.current
@@ -198,6 +243,13 @@ fun LanguageSettingsView(onBack: () -> Unit) {
     }
 }
 
+/**
+ * Wiersz opcji motywu z przyciskiem radiowym.
+ *
+ * @param text etykieta opcji motywu
+ * @param selected `true`, jeśli ta opcja jest aktualnie wybrana
+ * @param onClick wywołanie zwrotne po wybraniu opcji
+ */
 @Composable
 fun ThemeOptionRow(text: String, selected: Boolean, onClick: () -> Unit) {
     Row(
@@ -213,6 +265,16 @@ fun ThemeOptionRow(text: String, selected: Boolean, onClick: () -> Unit) {
     }
 }
 
+/**
+ * Panel administratora wyświetlający oczekujące zgłoszenia nowych produktów.
+ *
+ * Nasłuchuje zmian w kolekcji `product_requests` w Firestore w czasie rzeczywistym.
+ * Umożliwia zatwierdzenie zgłoszenia jako nowy produkt, przypisanie kodu kreskowego
+ * do istniejącego produktu lub odrzucenie zgłoszenia.
+ *
+ * @param onBack wywołanie zwrotne powrotu do głównego widoku profilu
+ * @param repository repozytorium produktów używane do operacji zatwierdzania i odrzucania
+ */
 @Composable
 fun AdminRequestsView(
     onBack: () -> Unit,
@@ -247,7 +309,7 @@ fun AdminRequestsView(
     Scaffold(
         snackbarHost = {
             SnackbarHost(hostState = snackbarHostState) { data ->
-                AppSnackbar(data) // Ten sam komponent!
+                AppSnackbar(data)
             }
         },
         topBar = {
@@ -280,7 +342,6 @@ fun AdminRequestsView(
                                 scope.launch {
                                     try {
                                         repository.approveProductRequest(requestId, finalProduct)
-                                        // 3. Wyświetlenie powiadomienia po sukcesie
                                         snackbarHostState.showSnackbar(TranslationHelper.StringResource(R.string.new_product_added).asString(context) + finalProduct.name)
                                     } catch (e: Exception) {
                                         snackbarHostState.showSnackbar(TranslationHelper.StringResource(R.string.error_adding).asString(context))
@@ -298,7 +359,6 @@ fun AdminRequestsView(
                                     try {
                                         repository.addBarcodeToExistingProduct(productId, barcode)
                                         repository.rejectProductRequest(requestId)
-                                        // 4. Wyświetlenie powiadomienia po przypisaniu
                                         snackbarHostState.showSnackbar(TranslationHelper.StringResource(R.string.code_assigned).asString(context))
                                     } catch (e: Exception) {
                                         snackbarHostState.showSnackbar(TranslationHelper.StringResource(R.string.error_assigning).asString(context))
@@ -313,20 +373,32 @@ fun AdminRequestsView(
     }
 }
 
+/**
+ * Karta pojedynczego zgłoszenia produktu w panelu administratora.
+ *
+ * Wyświetla nazwę i kod kreskowy zgłoszonego produktu oraz trzy przyciski akcji:
+ * odrzucenia, przypisania do istniejącego produktu i zatwierdzenia jako nowy produkt.
+ * Zatwierdzenie i przypisanie odbywają się przez dedykowane dialogi z formularzami.
+ *
+ * @param request zgłoszenie produktu do wyświetlenia
+ * @param existingProducts lista wszystkich produktów w bazie danych (do wyszukiwania przy przypisaniu)
+ * @param onApprove wywołanie zwrotne zatwierdzenia zgłoszenia z docelowym obiektem [Product]
+ * @param onReject wywołanie zwrotne odrzucenia zgłoszenia z identyfikatorem zgłoszenia
+ * @param onAssignToExisting wywołanie zwrotne przypisania kodu kreskowego do istniejącego produktu
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminRequestCard(
     request: ProductRequest,
-    existingProducts: List<Product>, // DODANO
+    existingProducts: List<Product>,
     onApprove: (requestId: String, finalProduct: Product) -> Unit,
     onReject: (String) -> Unit,
-    onAssignToExisting: (requestId: String, productId: String, barcode: String) -> Unit // DODANO
+    onAssignToExisting: (requestId: String, productId: String, barcode: String) -> Unit
 ) {
     var showEditDialog by remember { mutableStateOf(false) }
     var showAssignDialog by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
 
-    // Stan formularza edycji
     var editedBarcode by remember { mutableStateOf(request.barcode) }
     var editedName by remember { mutableStateOf(request.name) }
     var editedId by remember { mutableStateOf("") }
@@ -337,7 +409,6 @@ fun AdminRequestCard(
     var selectedCategory by remember { mutableStateOf(categories.last()) }
     var selectedUnit by remember { mutableStateOf(units.first()) }
 
-    // --- DIALOG: TWORZENIE NOWEGO PRODUKTU ---
     if (showEditDialog) {
         AlertDialog(
             onDismissRequest = { showEditDialog = false },
@@ -410,7 +481,6 @@ fun AdminRequestCard(
         )
     }
 
-    // --- DIALOG: PRZYPISANIE DO ISTNIEJĄCEGO ---
     if (showAssignDialog) {
         AlertDialog(
             onDismissRequest = { showAssignDialog = false },
@@ -449,7 +519,6 @@ fun AdminRequestCard(
         )
     }
 
-    // --- WIDOK KARTY ---
     Card(
         modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
@@ -463,17 +532,14 @@ fun AdminRequestCard(
                 Text("Kod: ${request.barcode}", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
             }
 
-            // Przycisk: ODRZUĆ (X)
             IconButton(onClick = { onReject(request.id) }) {
                 Icon(Icons.Default.Close, contentDescription = stringResource(R.string.reject), tint = Color.Red)
             }
 
-            // Przycisk: PRZYPISZ (Link)
             IconButton(onClick = { showAssignDialog = true }) {
                 Icon(Icons.Default.Link, contentDescription = stringResource(R.string.assign), tint = MaterialTheme.colorScheme.primary)
             }
 
-            // Przycisk: NOWY (Zatwierdź)
             Button(onClick = { showEditDialog = true }) {
                 Text(text = stringResource(R.string.confirm))
             }

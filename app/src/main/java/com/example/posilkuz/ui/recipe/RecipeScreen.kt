@@ -29,6 +29,17 @@ import com.example.posilkuz.data.model.Recipe
 import com.example.posilkuz.data.repository.PinnedRecipeRepository
 import com.example.posilkuz.ui.translation.getDynamicString
 
+/**
+ * Ekran listy przepisów kulinarnych dostępnych w aplikacji.
+ *
+ * Pobiera przepisy z [RecipesViewModel] i wyświetla je jako listę kart [RecipeCard].
+ * Zawiera przycisk FAB umożliwiający przejście do losowania przepisu.
+ * W trakcie ładowania danych wyświetla wskaźnik postępu.
+ *
+ * @param viewModel instancja [RecipesViewModel] obsługująca logikę ekranu
+ * @param innerPadding padding wewnętrzny przekazywany z zewnętrznego [Scaffold]
+ * @param onRandomClick wywołanie zwrotne nawigacji do ekranu losowego przepisu
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RecipesScreen(
@@ -39,6 +50,7 @@ fun RecipesScreen(
     val recipes by viewModel.recipes.collectAsState()
     val pantryIds by viewModel.userPantryIds.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(title = { Text(text = stringResource(R.string.our_recipes)) })
@@ -84,6 +96,19 @@ fun RecipesScreen(
     }
 }
 
+/**
+ * Karta pojedynczego przepisu kulinarnego z możliwością rozwinięcia szczegółów.
+ *
+ * Wyświetla tytuł przepisu oraz — po rozwinięciu — listę składników z oznaczeniem,
+ * które z nich użytkownik posiada w spiżarni (zielona ikona), oraz instrukcję przygotowania.
+ * Umożliwia przypinanie przepisu do ekranu głównego przez [PinnedRecipeRepository].
+ *
+ * @param recipe przepis do wyświetlenia
+ * @param userPantryIds zbiór identyfikatorów produktów posiadanych przez użytkownika,
+ *   używany do oznaczania dostępnych składników
+ * @param onPinToggle opcjonalne wywołanie zwrotne po zmianie stanu przypięcia;
+ *   `null` oznacza brak dodatkowej reakcji poza logiką w [PinnedRecipeRepository]
+ */
 @Composable
 fun RecipeCard(
     recipe: Recipe,
@@ -119,10 +144,9 @@ fun RecipeCard(
                     modifier = Modifier.weight(1f)
                 )
 
-                // Przycisk przypięcia
                 IconButton(
                     onClick = {
-                        PinnedRecipeRepository.toggle(context,recipe)
+                        PinnedRecipeRepository.toggle(context, recipe)
                         onPinToggle?.invoke(recipe)
                     }
                 ) {

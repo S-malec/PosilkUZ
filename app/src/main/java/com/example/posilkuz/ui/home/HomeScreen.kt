@@ -33,6 +33,21 @@ import com.example.posilkuz.ui.translation.TranslationHelper
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
+/**
+ * Ekran główny aplikacji wyświetlany po zalogowaniu użytkownika.
+ *
+ * Pobiera nick użytkownika z Firestore i wyświetla go w powitaniu.
+ * Prezentuje ewentualnie przypiętym przepis ([PinnedRecipeCard]), kafelek nawigacji
+ * do sklepów spożywczych ([MapsCard]), szybkie akcje ([QuickActionCard]) oraz
+ * banery reklamowe AdMob.
+ *
+ * @param onLogout wywołanie zwrotne wylogowania użytkownika
+ * @param onNavigateToPantry wywołanie zwrotne nawigacji do ekranu spiżarni
+ * @param onNavigateToRecipes wywołanie zwrotne nawigacji do ekranu przepisów
+ * @param onNavigateToProfile wywołanie zwrotne nawigacji do ekranu profilu
+ * @param onShowMaps wywołanie zwrotne otwierające mapę pobliskich sklepów
+ * @param innerPadding padding wewnętrzny przekazywany z zewnętrznego [Scaffold]
+ */
 @Composable
 fun HomeScreen(
     onLogout: () -> Unit,
@@ -167,6 +182,15 @@ fun HomeScreen(
     }
 }
 
+/**
+ * Karta wyświetlająca aktualnie przypiętym przepis na ekranie głównym.
+ *
+ * Obsługuje rozwijanie/zwijanie szczegółów przepisu (składniki i instrukcja)
+ * z animacją obrotu ikony strzałki. Zawiera przycisk odpięcia przepisu.
+ *
+ * @param recipe przepis do wyświetlenia
+ * @param onUnpin wywołanie zwrotne odpięcia przepisu z ekranu głównego
+ */
 @Composable
 private fun PinnedRecipeCard(recipe: Recipe, onUnpin: () -> Unit) {
     val context = LocalContext.current
@@ -295,6 +319,11 @@ private fun PinnedRecipeCard(recipe: Recipe, onUnpin: () -> Unit) {
     }
 }
 
+/**
+ * Karta nawigacyjna otwierająca Google Maps z pobliskimi sklepami spożywczymi.
+ *
+ * @param onShowMaps wywołanie zwrotne otwierające mapę po kliknięciu karty
+ */
 @Composable
 private fun MapsCard(onShowMaps: () -> Unit) {
     val context = LocalContext.current
@@ -350,6 +379,17 @@ private fun MapsCard(onShowMaps: () -> Unit) {
     }
 }
 
+/**
+ * Karta szybkiej akcji wyświetlana w siatce na ekranie głównym.
+ *
+ * Wyświetla ikonę, tytuł i podtytuł akcji. Po kliknięciu wywołuje [onClick].
+ *
+ * @param modifier modyfikator Compose stosowany do karty
+ * @param icon ikona wektorowa reprezentująca akcję
+ * @param title krótki tytuł akcji
+ * @param subtitle dodatkowy opis akcji
+ * @param onClick wywołanie zwrotne po kliknięciu karty
+ */
 @Composable
 private fun QuickActionCard(
     modifier: Modifier = Modifier,

@@ -13,6 +13,17 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.example.posilkuz.R
 
+/**
+ * Ekran logowania użytkownika.
+ *
+ * Wyświetla formularz z polami e-mail i hasło oraz przycisk logowania.
+ * W trakcie weryfikacji pokazuje animowany wskaźnik ładowania z informacją
+ * o sprawdzaniu połączenia z Firebase. Po zakończeniu operacji wyświetla
+ * komunikat o sukcesie lub błędzie.
+ *
+ * @param viewModel instancja [AuthViewModel] obsługująca logikę logowania
+ * @param onNavigateToRegister wywołanie zwrotne nawigacji do ekranu rejestracji
+ */
 @Composable
 fun LoginScreen(viewModel: AuthViewModel, onNavigateToRegister: () -> Unit) {
     var email by remember { mutableStateOf("") }

@@ -7,6 +7,14 @@ import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
 
+/**
+ * Komponent wyświetlający standardowy baner reklamowy Google AdMob.
+ *
+ * Używa rozmiaru [AdSize.BANNER] (320×50 dp). W obecnej implementacji korzysta
+ * z testowego identyfikatora jednostki reklamowej AdMob.
+ *
+ * @param modifier modyfikator Compose stosowany do kontenera banera
+ */
 @Composable
 fun BannerAd(modifier: Modifier = Modifier) {
     AndroidView(
@@ -21,6 +29,14 @@ fun BannerAd(modifier: Modifier = Modifier) {
     )
 }
 
+/**
+ * Komponent wyświetlający duży baner reklamowy Google AdMob.
+ *
+ * Używa rozmiaru [AdSize.LARGE_BANNER] (320×100 dp). W obecnej implementacji korzysta
+ * z testowego identyfikatora jednostki reklamowej AdMob.
+ *
+ * @param modifier modyfikator Compose stosowany do kontenera banera
+ */
 @Composable
 fun LargeBannerAd(modifier: Modifier = Modifier) {
     AndroidView(
