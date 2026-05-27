@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     id("com.google.gms.google-services")
+    id("org.jetbrains.dokka")
 }
 
 android {
@@ -86,4 +87,22 @@ dependencies {
     implementation("com.google.android.gms:play-services-code-scanner:16.1.0")
     implementation("androidx.datastore:datastore-preferences:1.0.0")
     implementation("com.google.android.gms:play-services-ads:23.0.0")
+}
+
+dokka {
+    moduleName.set("PosilkUZ")
+
+    dokkaSourceSets.configureEach {
+        // Skoro apka jest w folderze java, kierujemy Dokkę dokładnie tam
+        sourceRoots.from(file("src/main/java"), file("src/test/java"))
+
+        // Zmuszamy Dokkę do dokumentowania wszystkiego (częsty powód "pustych" wyników w Androidzie)
+        documentedVisibilities.set(
+            setOf(
+                org.jetbrains.dokka.gradle.engine.parameters.VisibilityModifier.Public,
+                org.jetbrains.dokka.gradle.engine.parameters.VisibilityModifier.Private,
+                org.jetbrains.dokka.gradle.engine.parameters.VisibilityModifier.Internal
+            )
+        )
+    }
 }
