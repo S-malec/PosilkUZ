@@ -30,6 +30,7 @@ import com.example.posilkuz.data.repository.PinnedRecipeRepository
 import com.example.posilkuz.ui.ads.BannerAd
 import com.example.posilkuz.ui.ads.LargeBannerAd
 import com.example.posilkuz.ui.translation.TranslationHelper
+import com.example.posilkuz.ui.pantry.PantryViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -55,7 +56,9 @@ fun HomeScreen(
     onNavigateToRecipes: () -> Unit,
     onNavigateToProfile: () -> Unit,
     onShowMaps: () -> Unit,
-    innerPadding: PaddingValues = PaddingValues()
+    onRecipeReminder: (String) -> Unit = {},
+    innerPadding: PaddingValues = PaddingValues(),
+    pantryViewModel: PantryViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
     val context = LocalContext.current
     val auth = FirebaseAuth.getInstance()
@@ -63,6 +66,7 @@ fun HomeScreen(
     var nickname by remember { mutableStateOf("...") }
 
     val pinnedRecipe by PinnedRecipeRepository.pinnedRecipe.collectAsState()
+    val userPantryIds by pantryViewModel.userPantryIds.collectAsState()
 
     LaunchedEffect(Unit) {
         val userId = auth.currentUser?.uid
@@ -109,20 +113,20 @@ fun HomeScreen(
                 }
             }
 
-
-            AnimatedVisibility(
-                visible = pinnedRecipe != null,
-                enter = slideInVertically(initialOffsetY = { -it }) + fadeIn(),
-                exit = slideOutVertically(targetOffsetY = { -it }) + fadeOut()
-            ) {
-                pinnedRecipe?.let { recipe ->
-                    PinnedRecipeCard(
-                        recipe = recipe,
-                        onUnpin = { PinnedRecipeRepository.unpin(context) }
-                    )
-                }
+        AnimatedVisibility(
+            visible = pinnedRecipe != null,
+            enter = slideInVertically(initialOffsetY = { -it }) + fadeIn(),
+            exit = slideOutVertically(targetOffsetY = { -it }) + fadeOut()
+        ) {
+            pinnedRecipe?.let { recipe ->
+                PinnedRecipeCard(
+                    recipe = recipe,
+                    onUnpin = { PinnedRecipeRepository.unpin(context) },
+                    onRecipeReminder = onRecipeReminder,
+                    userPantryIds = userPantryIds
+                )
             }
-
+        }
 
             MapsCard(onShowMaps = onShowMaps)
 
@@ -192,7 +196,12 @@ fun HomeScreen(
  * @param onUnpin wywołanie zwrotne odpięcia przepisu z ekranu głównego
  */
 @Composable
-private fun PinnedRecipeCard(recipe: Recipe, onUnpin: () -> Unit) {
+private fun PinnedRecipeCard(
+    recipe: Recipe,
+    onUnpin: () -> Unit,
+    onRecipeReminder: (String) -> Unit,
+    userPantryIds: Set<String> = emptySet()
+) {
     val context = LocalContext.current
     var isExpanded by remember { mutableStateOf(false) }
     val rotationState by animateFloatAsState(targetValue = if (isExpanded) 180f else 0f)
@@ -232,6 +241,18 @@ private fun PinnedRecipeCard(recipe: Recipe, onUnpin: () -> Unit) {
                 }
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(
+                        onClick = { onRecipeReminder(recipe.title) },
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.NotificationsActive,
+                            contentDescription = "Przypomnij",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+
                     IconButton(
                         onClick = onUnpin,
                         modifier = Modifier.size(32.dp)
@@ -278,6 +299,7 @@ private fun PinnedRecipeCard(recipe: Recipe, onUnpin: () -> Unit) {
                     )
 
                     recipe.ingredientIds.forEach { ingredientId ->
+                        val hasIngredient = userPantryIds.contains(ingredientId)
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.padding(vertical = 2.dp)

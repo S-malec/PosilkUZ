@@ -62,7 +62,8 @@ enum class ProfileSubScreen {
 fun ProfileScreen(
     currentTheme: ThemeMode,
     onThemeChange: (ThemeMode) -> Unit,
-    innerPadding: PaddingValues = PaddingValues()
+    innerPadding: PaddingValues = PaddingValues(),
+    onTestNotification: () -> Unit = {}
 ) {
     var currentSubScreen by remember { mutableStateOf(ProfileSubScreen.MAIN) }
 
@@ -93,7 +94,9 @@ fun ProfileScreen(
             ProfileSubScreen.SETTINGS -> SettingsView(
                 onBack = { currentSubScreen = ProfileSubScreen.MAIN },
                 onNavigateToDisplay = { currentSubScreen = ProfileSubScreen.DISPLAY },
-                onNavigateToLanguage = { currentSubScreen = ProfileSubScreen.LANGUAGE }
+                onNavigateToLanguage = { currentSubScreen = ProfileSubScreen.LANGUAGE },
+                onNavigateToDisplay = { currentSubScreen = ProfileSubScreen.DISPLAY },
+                onTestNotification = onTestNotification
             )
             ProfileSubScreen.DISPLAY -> DisplaySettingsView(
                 currentTheme = currentTheme,
@@ -125,6 +128,7 @@ fun ProfileMainView(onNavigateToSettings: () -> Unit, onNavigateToAdmin: () -> U
         modifier = Modifier.clickable { onNavigateToSettings() }
     )
 
+    // Przycisk widoczny dla administratora
     ListItem(
         headlineContent = { Text(text = stringResource(R.string.approve_products)) },
         leadingContent = { Icon(Icons.Default.FactCheck, contentDescription = null) },
@@ -144,7 +148,8 @@ fun ProfileMainView(onNavigateToSettings: () -> Unit, onNavigateToAdmin: () -> U
 fun SettingsView(
     onBack: () -> Unit,
     onNavigateToDisplay: () -> Unit,
-    onNavigateToLanguage: () -> Unit
+    onNavigateToLanguage: () -> Unit,
+    onTestNotification: () -> Unit
 ) {
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 16.dp)) {
         IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.back)) }

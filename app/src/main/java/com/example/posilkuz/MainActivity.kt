@@ -2,11 +2,15 @@ package com.example.posilkuz
 
 import android.R.attr.icon
 import android.content.Context
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.provider.Settings.Global.getString
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.fillMaxSize
@@ -34,6 +38,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.core.content.ContextCompat
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -48,6 +53,7 @@ import com.example.posilkuz.ui.recipe.RecipesScreen
 import com.example.posilkuz.ui.theme.PosilkUZTheme
 import com.example.posilkuz.ui.theme.ThemeMode
 import com.example.posilkuz.ui.translation.LanguageHelper
+import com.example.posilkuz.utils.NotificationHelper
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
@@ -112,6 +118,46 @@ class MainActivity : ComponentActivity() {
             val context = LocalContext.current
             val onShowMaps: () -> Unit = { context.openGroceryMaps() }
 
+            val notificationHelper = remember { NotificationHelper(context) }
+
+            val permissionLauncher = rememberLauncherForActivityResult(
+                contract = ActivityResultContracts.RequestPermission()
+            ) { isGranted ->
+                if (isGranted) {
+                    notificationHelper.sendTestNotification()
+                }
+            }
+
+            val handleTestNotification = {
+                if (Build.VERSION.SDK_INT >= 33) {
+                    val hasPermission = ContextCompat.checkSelfPermission(
+                        context, "android.permission.POST_NOTIFICATIONS"
+                    ) == PackageManager.PERMISSION_GRANTED
+                    if (hasPermission) {
+                        notificationHelper.sendTestNotification()
+                    } else {
+                        permissionLauncher.launch("android.permission.POST_NOTIFICATIONS")
+                    }
+                } else {
+                    notificationHelper.sendTestNotification()
+                }
+            }
+
+            val handleRecipeReminder = { recipeName: String ->
+                if (Build.VERSION.SDK_INT >= 33) {
+                    val hasPermission = ContextCompat.checkSelfPermission(
+                        context, "android.permission.POST_NOTIFICATIONS"
+                    ) == PackageManager.PERMISSION_GRANTED
+                    if (hasPermission) {
+                        notificationHelper.sendRecipeReminder(recipeName)
+                    } else {
+                        permissionLauncher.launch("android.permission.POST_NOTIFICATIONS")
+                    }
+                } else {
+                    notificationHelper.sendRecipeReminder(recipeName)
+                }
+            }
+
             PosilkUZTheme(themeMode = currentTheme) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
@@ -138,7 +184,9 @@ class MainActivity : ComponentActivity() {
                                     }
                                 },
                                 onShowMaps = onShowMaps,
-                                onNavigateToRandom = { navController.navigate("random_recipe") }
+                                onNavigateToRandom = { navController.navigate("random_recipe") },
+                                onTestNotification = handleTestNotification,
+                                onRecipeReminder = handleRecipeReminder
                             )
                         }
 
@@ -174,7 +222,9 @@ fun MainPagerScreen(
     onThemeChange: (ThemeMode) -> Unit,
     onLogout: () -> Unit,
     onShowMaps: () -> Unit,
-    onNavigateToRandom: () -> Unit
+    onNavigateToRandom: () -> Unit,
+    onTestNotification: () -> Unit,
+    onRecipeReminder: (String) -> Unit
 ) {
 
     val pagerState = rememberPagerState(pageCount = { mainTabs.size })
@@ -227,6 +277,7 @@ fun MainPagerScreen(
                         coroutineScope.launch { pagerState.animateScrollToPage(3) }
                     },
                     onShowMaps = onShowMaps,
+                    onRecipeReminder = onRecipeReminder,
                     innerPadding = innerPadding
                 )
                 1 -> PantryScreen(innerPadding = innerPadding)
@@ -237,7 +288,8 @@ fun MainPagerScreen(
                 3 -> ProfileScreen(
                     currentTheme = currentTheme,
                     onThemeChange = onThemeChange,
-                    innerPadding = innerPadding
+                    innerPadding = innerPadding,
+                    onTestNotification = onTestNotification
                 )
             }
         }
